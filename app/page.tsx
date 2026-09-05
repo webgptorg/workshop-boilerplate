@@ -1,5 +1,3 @@
-import { BookExample } from "@/components/book-example";
-import { FloatingAgent } from "@/components/floating-agent";
 import { PromptbookBrand } from "@/components/promptbook-brand";
 
 export default function Home() {
@@ -15,14 +13,7 @@ export default function Home() {
         </div>
       </header>
 
-      <main className="container main-content">
-        <div className="page-intro">
-          <h1>Promptbook starter</h1>
-          <p>Next.js starter with Promptbook components and branding.</p>
-        </div>
-
-        <BookExample />
-      </main>
+      <main className="main-content" />
 
       <footer className="site-footer">
         <div className="container footer-inner">
@@ -30,8 +21,6 @@ export default function Home() {
           <span>Promptbook · 2026</span>
         </div>
       </footer>
-
-      <FloatingAgent />
     </div>
   );
 }
