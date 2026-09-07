@@ -197,7 +197,7 @@ export default function Home() {
   }
 
   return <div className="site-shell">
-    <header className="site-header"><div className="container header-inner"><PromptbookBrand /><span className="header-status">Call notes</span></div></header>
+    <header className="site-header"><div className="container header-inner"><PromptbookBrand /><span className="header-status">{scenario.title}</span></div></header>
     <div className="app-layout container">
       <aside className="call-tray" aria-label="Saved calls">
         <div className="tray-heading"><div><span className="card-kicker">History</span><h3>Your calls</h3></div><span className="tray-count">{savedCalls.length}</span></div>
