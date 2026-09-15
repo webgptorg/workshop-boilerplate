@@ -9,6 +9,8 @@ Create a simple game with a map and the ability to build cities.
 ## UI
 
 - The UI should be minimalistic. 
+- There should be no bullshit texts or things. There should be just a very simple, minimalistic tray and buildings you can select and build from. 
+- Get inspiration from the Mac app tray. 
 - There should be only a map and a simple tray on the bottom with the buildings. 
 - No branding, compass, controls, some fake game information, etc. This will be added later. 
 
@@ -32,10 +34,56 @@ Create a simple game with a map and the ability to build cities.
 - On the ground, there should be multiple tiles, like grass, sand, rocks, and gravel,...
 - The data for the terrain are grid-based, but the visual of the terrain itself should be procedurally generated. 
 
+## Terrain (Types)
 
-## Buildings
+Ground
+- Grass
+- Sand
+- Rocks
+- Gravel
+
+Water
+- Ocean - do not distinguish between types of water. There should be just one type of water for sea, ocean, deep water, rivers, etc. The multiple types of water will be added later. 
+
+
+There should be some procedural algorithm which can generate an infinitely large map which makes sense. It has natural-looking islands, rivers, mountains, deserts, etc. 
+
+Get inspiration from Minecraft and other procedurally generated games. 
+
+
+## Terrain (Visuals)
+
+- There should be some procedural algorithm which can generate the visual of the terrain. 
+- Be aware that this algorithm is a different procedural algorithm than the generating terrain types. 
+- One algorithm generates the types of the terrain, and this algorithm generates the actual graphic, the pixels on the screen, and a smooth transition between each terrain type.
+- There should be some logic between the terrain transitions. For example, when the sand, grass, rocks, or gravel is falling to the water, it should have some logic. 
+- Same with other transitions, for example, when the grass and sand touch. The transition should look natural and follow the logic of the terrain types.
+
+
+
+## Buildings (Game logic)
 
 - Buildings should be placed on the grid and should align with the isometric perspective.
 - Buildings should be low-poly but visually appealing, not just icons, but real buildings on a real map. 
 - Player starts with the town center.
 - Other buildings can be constructed by the player on available grid spaces.
+
+## Buildings (types)
+
+- Town Center
+- House
+- Farm
+- Barracks
+- Market
+- Workshop
+- Blacksmith
+- Stable
+- Watchtower
+
+
+
+## Code quality
+
+- Create abstractions. For example, for the Turing transitions, there should be some reusable system which will work modularly. 
+- Do not hardcode anything. Everything should be like a plugin. Each building and terrain should be plugable.
+- Ensure that the code is modular and maintainable, allowing for easy addition of new features and content without modifying the core systems.
