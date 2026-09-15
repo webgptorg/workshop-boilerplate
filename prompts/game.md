@@ -1,6 +1,6 @@
 Create a simple game with a map and the ability to build cities.
 
-- The game is called "Kingdoms".
+
 - The game map should be the most prominent part of the app. It should fill the entire screen and should be draggable by mouse.
 - The game should have medieval vibe and look nice. 
 - For now, you are not implementing gameplay, like resources, game turns, or players. You are just drafting the perfect game map with free mode and free resources. 
