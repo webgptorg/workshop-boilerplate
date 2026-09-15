@@ -13,8 +13,8 @@ const outfit = Outfit({
 });
 
 export const metadata: Metadata = {
-  title: "Wilderlands",
-  description: "A quiet kingdom waiting to be built.",
+  title: "Promptbook Starter",
+  description: "A Promptbook-branded Next.js starter for practical AI products.",
 };
 
 export default function RootLayout({
