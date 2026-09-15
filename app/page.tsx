@@ -1,26 +1,37 @@
-import { PromptbookBrand } from "@/components/promptbook-brand";
+"use client";
 
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+
+type BuildingType = "town" | "house" | "farm" | "tower" | "lumber";
+type Building = { type: BuildingType; col: number; row: number };
+const COLS = 28, ROWS = 22, TILE_W = 82, TILE_H = 42, ORIGIN_X = 1140, ORIGIN_Y = 142;
+const buildings: { type: BuildingType; name: string; cost: string }[] = [
+  { type: "house", name: "Cottage", cost: "25" }, { type: "farm", name: "Farmstead", cost: "40" },
+  { type: "tower", name: "Watchtower", cost: "60" }, { type: "lumber", name: "Lumber yard", cost: "35" },
+];
+function hash(col: number, row: number) { const value = Math.sin(col * 127.1 + row * 311.7) * 43758.5453; return value - Math.floor(value); }
+function iso(col: number, row: number) { return { x: ORIGIN_X + (col - row) * TILE_W / 2, y: ORIGIN_Y + (col + row) * TILE_H / 2 }; }
+function diamond(col: number, row: number) { const { x, y } = iso(col, row); return `${x},${y - TILE_H / 2} ${x + TILE_W / 2},${y} ${x},${y + TILE_H / 2} ${x - TILE_W / 2},${y}`; }
+function terrainAt(col: number, row: number) {
+  const shore = Math.sin(col * 0.42) + Math.cos(row * 0.5) + Math.sin((col + row) * 0.2);
+  const water = shore < -0.72 || (col < 4 && row > 14) || (col > 24 && row < 5);
+  if (water) return "water"; const texture = hash(col, row);
+  if (texture > 0.84) return "rock"; if (texture > 0.68) return "gravel"; if (texture < 0.16 || shore < -0.1) return "sand"; return "grass";
+}
+function BuildingArt({ building }: { building: Building }) {
+  const { x, y } = iso(building.col, building.row);
+  if (building.type === "town") return <g transform={`translate(${x} ${y - 22})`} className="building-art"><path className="shadow" d="M-38 28 0 47 39 28 0 9Z" /><path className="town-side" d="m-28-7 28 14v34l-28-14z" /><path className="town-front" d="m0 7 28-14v34L0 41z" /><path className="town-roof" d="m-33-8 33-20 34 19L0 7z" /><path className="town-door" d="m-8 22 10 5V8L-8 3z" /><path className="town-window" d="m9 11 9-5v9l-9 5z" /><path className="town-flag" d="M0-27v-22m0 0 15 6-15 6" /></g>;
+  if (building.type === "farm") return <g transform={`translate(${x} ${y - 8})`} className="building-art"><path className="shadow" d="M-27 13 0 27 28 13 0 0Z" /><path className="farm-field" d="M-27 3 0 16 27 3 0-10Z" /><path className="farm-row" d="m-17 3 18 9M-10-2l20 10M0-7l18 9M10-12l16 8" /><path className="wood-post" d="M-13-14v-22M14-14v-22" /><path className="wood-beam" d="M-18-34h36" /></g>;
+  if (building.type === "tower") return <g transform={`translate(${x} ${y - 26})`} className="building-art"><path className="shadow" d="M-25 37 0 49 26 37 0 25Z" /><path className="tower-side" d="m-17-5 17 8v43l-17-8z" /><path className="tower-front" d="m0 3 17-8v43L0 46z" /><path className="tower-roof" d="m-20-7 20-11 21 10L0 3Z" /><path className="tower-flag" d="M0-18v-18m0 0 12 5-12 5" /><path className="window" d="m6 12 5-2v8l-5 2z" /></g>;
+  if (building.type === "lumber") return <g transform={`translate(${x} ${y - 7})`} className="building-art"><path className="shadow" d="M-29 13 0 28 30 13 0-1Z" /><path className="lumber-roof" d="m-22-13 22-12 23 11L1-3z" /><path className="lumber-wall" d="m-20-13 20 10v27l-20-10z" /><path className="lumber-front" d="m0-3 20-10v27L0 24z" /><path className="door" d="m7 5 7-4v13l-7 4z" /><circle className="wheel" cx="-23" cy="18" r="8" /><circle className="wheel-inner" cx="-23" cy="18" r="3" /></g>;
+  return <g transform={`translate(${x} ${y - 13})`} className="building-art"><path className="shadow" d="M-27 20 0 34 28 20 0 7Z" /><path className="house-side" d="m-19-7 19 9v31l-19-10z" /><path className="house-front" d="m0 2 19-9v30L0 33z" /><path className="roof" d="m-23-8 23-15 24 14L0 2z" /><path className="door" d="m6 13 7-4v12l-7 4z" /><path className="window" d="m-13 5 6 3v7l-6-3z" /></g>;
+}
 export default function Home() {
-  return (
-    <div className="site-shell">
-      <header className="site-header">
-        <div className="container header-inner">
-          <PromptbookBrand />
-          <nav className="header-nav" aria-label="Main navigation">
-            <a href="https://www.ptbk.io/">ptbk.io</a>
-            <a href="https://github.com/webgptorg/boilerplate">GitHub ↗</a>
-          </nav>
-        </div>
-      </header>
-
-      <main className="main-content" />
-
-      <footer className="site-footer">
-        <div className="container footer-inner">
-          <PromptbookBrand />
-          <span>Promptbook · 2026</span>
-        </div>
-      </footer>
-    </div>
-  );
+  const [selected, setSelected] = useState<BuildingType>("house"); const [placed, setPlaced] = useState<Building[]>([{ type: "town", col: 14, row: 11 }]);
+  const [pan, setPan] = useState({ x: 0, y: 0 }); const [isDragging, setIsDragging] = useState(false); const drag = useRef({ active: false, moved: false, x: 0, y: 0 });
+  const tiles = useMemo(() => Array.from({ length: COLS * ROWS }, (_, index) => { const col = index % COLS, row = Math.floor(index / COLS); return { col, row, terrain: terrainAt(col, row) }; }), []);
+  const move = useCallback((x: number, y: number) => setPan((current) => ({ x: current.x + x, y: current.y + y })), []);
+  useEffect(() => { const onKey = (event: KeyboardEvent) => { const distance = event.shiftKey ? 36 : 20; if (event.key === "ArrowLeft") move(distance, 0); if (event.key === "ArrowRight") move(-distance, 0); if (event.key === "ArrowUp") move(0, distance); if (event.key === "ArrowDown") move(0, -distance); }; window.addEventListener("keydown", onKey); return () => window.removeEventListener("keydown", onKey); }, [move]);
+  const place = (col: number, row: number) => { if (terrainAt(col, row) === "water" || placed.some((building) => building.col === col && building.row === row)) return; setPlaced((current) => [...current, { type: selected, col, row }]); };
+  return <main className="game-shell" tabIndex={0} aria-label="Kingdom map"><svg className={`map ${isDragging ? "is-dragging" : ""}`} viewBox="0 0 1600 900" preserveAspectRatio="xMidYMid slice" onPointerDown={(event) => { drag.current = { active: true, moved: false, x: event.clientX, y: event.clientY }; setIsDragging(true); event.currentTarget.setPointerCapture(event.pointerId); }} onPointerMove={(event) => { if (!drag.current.active) return; const dx = event.clientX - drag.current.x, dy = event.clientY - drag.current.y; if (Math.abs(dx) + Math.abs(dy) > 2) drag.current.moved = true; move(dx, dy); drag.current.x = event.clientX; drag.current.y = event.clientY; }} onPointerUp={() => { drag.current.active = false; setIsDragging(false); }} onPointerCancel={() => { drag.current.active = false; setIsDragging(false); }}><defs><linearGradient id="sky" x1="0" y1="0" x2="0" y2="1"><stop stopColor="#b9d4c8" /><stop offset="1" stopColor="#769c8b" /></linearGradient><filter id="soft"><feGaussianBlur stdDeviation="18" /></filter></defs><rect width="1600" height="900" fill="url(#sky)" /><path className="mist" d="M0 210Q300 80 680 230T1600 170v370H0Z" /><g transform={`translate(${pan.x} ${pan.y})`}><path className="water-bed" d="M0 0h1600v900H0z" /><g className="terrain-layer">{tiles.map(({ col, row, terrain }) => <polygon key={`${col}-${row}`} points={diamond(col, row)} className={`terrain terrain-${terrain}`} onClick={() => { if (!drag.current.moved) place(col, row); }} />)}</g><g className="grid-layer">{tiles.map(({ col, row }) => <polygon key={`${col}-${row}`} points={diamond(col, row)} className="grid-line" />)}</g><g className="building-layer">{placed.map((building) => <BuildingArt key={`${building.col}-${building.row}`} building={building} />)}</g></g></svg><section className="build-tray" aria-label="Buildings"><div className="tray-label"><span className="wax-seal">✦</span><span>Build</span></div><div className="building-options">{buildings.map((building) => <button key={building.type} className={`building-option ${selected === building.type ? "selected" : ""}`} onClick={() => setSelected(building.type)} aria-label={`Select ${building.name}`}><span className={`tray-icon icon-${building.type}`} aria-hidden="true"><span /></span><span className="option-name">{building.name}</span><span className="option-cost">Free</span></button>)}</div><span className="drag-hint">Drag to explore · click land to build</span></section></main>;
 }
