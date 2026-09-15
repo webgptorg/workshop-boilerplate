@@ -22,8 +22,16 @@ body {
 
 body {
   background:
-    radial-gradient(circle at 18% 4%, rgba(122, 235, 255, 0.1), transparent 26rem),
-    radial-gradient(circle at 82% 18%, rgba(122, 255, 235, 0.08), transparent 24rem),
+    radial-gradient(
+      circle at 18% 4%,
+      rgba(122, 235, 255, 0.1),
+      transparent 26rem
+    ),
+    radial-gradient(
+      circle at 82% 18%,
+      rgba(122, 255, 235, 0.08),
+      transparent 24rem
+    ),
     #fbfdff;
   color: var(--pb-ink);
   font-family: var(--font-inter), Inter, sans-serif;
@@ -120,7 +128,9 @@ h3,
 }
 
 .header-nav a {
-  transition: color 140ms ease, transform 140ms ease;
+  transition:
+    color 140ms ease,
+    transform 140ms ease;
 }
 
 .header-nav a:hover {
@@ -241,5 +251,187 @@ h3,
     flex-direction: column;
     justify-content: center;
   }
+}
 
+/* The game owns its viewport. Brand tokens above remain available to the starter. */
+.game {
+  position: fixed;
+  inset: 0;
+  overflow: hidden;
+  background: #43858b;
+  --dock-surface: rgba(241, 236, 216, 0.88);
+  --dock-edge: rgba(255, 253, 235, 0.66);
+  --dock-ink: #525b47;
+}
+.world-map {
+  display: block;
+  width: 100%;
+  height: 100%;
+  touch-action: none;
+  cursor: grab;
+  outline: none;
+}
+.world-map.is-building {
+  cursor: crosshair;
+}
+.building-dock {
+  position: absolute;
+  bottom: max(25px, env(safe-area-inset-bottom));
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  align-items: flex-end;
+  gap: 3px;
+  padding: 7px 12px 9px;
+  border: 1px solid var(--dock-edge);
+  border-radius: 23px;
+  background: var(--dock-surface);
+  backdrop-filter: blur(20px);
+  isolation: isolate;
+}
+.dock-item {
+  position: relative;
+  width: 73px;
+  height: 76px;
+  padding: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid transparent;
+  border-radius: 15px;
+  background: transparent;
+  -webkit-tap-highlight-color: transparent;
+  transition:
+    background 160ms,
+    border-color 160ms;
+}
+.dock-item:first-child {
+  margin-right: 10px;
+}
+.dock-item:first-child::after {
+  content: "";
+  position: absolute;
+  right: -8px;
+  top: 16px;
+  bottom: 12px;
+  width: 1px;
+  background: #7c836029;
+}
+.dock-item:hover,
+.dock-item:focus-visible {
+  background: #ffffff59;
+}
+.dock-item:focus-visible {
+  outline: 2px solid #708d75;
+  outline-offset: 3px;
+}
+.dock-item.selected {
+  background: #cbd2b277;
+  border-color: #a0b08e66;
+}
+.building-preview {
+  width: 88px;
+  height: 76px;
+  flex-shrink: 0;
+  pointer-events: none;
+  transition: transform 180ms ease;
+}
+.dock-item:hover .building-preview {
+  transform: translateY(-7px);
+}
+.selection-dot {
+  position: absolute;
+  bottom: 2px;
+  width: 4px;
+  height: 4px;
+  border-radius: 50%;
+  background: transparent;
+}
+.selected .selection-dot {
+  background: #66816a;
+}
+.dock-tooltip {
+  position: absolute;
+  bottom: calc(100% + 19px);
+  left: 50%;
+  transform: translate(-50%, 5px);
+  padding: 8px 10px;
+  border: 1px solid #f6f1daaa;
+  border-radius: 8px;
+  background: #eeecdcef;
+  color: var(--dock-ink);
+  font-size: 11px;
+  font-weight: 500;
+  white-space: nowrap;
+  opacity: 0;
+  pointer-events: none;
+  transition:
+    opacity 140ms,
+    transform 140ms;
+}
+.dock-tooltip kbd {
+  margin-left: 11px;
+  font-size: 10px;
+  color: #8b907c;
+  font-family: inherit;
+}
+.dock-item:hover .dock-tooltip,
+.dock-item:focus-visible .dock-tooltip {
+  opacity: 1;
+  transform: translate(-50%, 0);
+}
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+@media (max-width: 760px) {
+  .building-dock {
+    gap: 0;
+    padding: 5px 6px 7px;
+    border-radius: 18px;
+    bottom: max(16px, env(safe-area-inset-bottom));
+  }
+  .dock-item {
+    width: calc((100vw - 35px) / 9);
+    max-width: 65px;
+    height: 61px;
+    border-radius: 10px;
+  }
+  .dock-item:first-child {
+    margin-right: 0;
+  }
+  .dock-item:first-child::after {
+    display: none;
+  }
+  .building-preview {
+    width: min(65px, calc((100vw - 35px) / 9 + 8px));
+    height: auto;
+    aspect-ratio: 88 / 76;
+  }
+  .dock-tooltip kbd {
+    display: none;
+  }
+  .dock-item:first-child .dock-tooltip {
+    left: 0;
+    transform: none;
+  }
+  .dock-item:last-child .dock-tooltip {
+    left: auto;
+    right: 0;
+    transform: none;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .building-preview,
+  .dock-item,
+  .dock-tooltip {
+    transition: none;
+  }
 }

@@ -13,8 +13,9 @@ const outfit = Outfit({
 });
 
 export const metadata: Metadata = {
-  title: "Promptbook Starter",
-  description: "A Promptbook-branded Next.js starter for practical AI products.",
+  title: "Stillwater — A world to build",
+  description:
+    "An endless isometric landscape. Explore, settle, and build your own medieval world.",
 };
 
 export default function RootLayout({
