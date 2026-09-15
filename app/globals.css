@@ -15,23 +15,10 @@
 }
 
 html,
-body { 
+body {
   margin: 0;
   min-height: 100%;
 }
-
-body { overflow: hidden; background: #b9d9d0; }
-.game-shell { width: 100vw; height: 100vh; position: relative; overflow: hidden; color: #283931; font-family: Georgia, serif; }
-.map-viewport { position: absolute; inset: 0; overflow: hidden; cursor: grab; background: #b9d9d0; }
-.map-viewport:active { cursor: grabbing; }
-.world-map { width: 100%; height: 100%; min-width: 1100px; min-height: 680px; transition: transform .08s linear; user-select: none; touch-action: none; }
-.land { fill: #e6c78d; stroke: #a67b47; stroke-width: 4; }
-.land-two { fill: #dcb67b; }.land-three { fill: #e9cc94; }
-.sea-lines { fill: none; stroke: #8dbbb3; stroke-width: 3; opacity: .5; }.river { fill: none; stroke: #78aaa4; stroke-width: 9; opacity: .8; }.road { fill: none; stroke: #a47749; stroke-width: 5; stroke-dasharray: 13 12; opacity: .7; }.mountains { fill: none; stroke: #98734d; stroke-width: 8; opacity: .7; }
-.map-title { fill: #806340; font: bold 24px Georgia; letter-spacing: 4px; opacity: .8; }.region { fill: #9e794e; font: italic 18px Georgia; letter-spacing: 2px; opacity: .75; }
-.city-marker { cursor: pointer; }.city-glow { fill: #f8e8b0; opacity: .55; }.city-circle { fill: #314e43; stroke: #f1d98d; stroke-width: 4; }.city-marker.ai .city-circle { fill: #784b42; }.city-icon { fill: #f6e6af; font-size: 19px; }.city-label { fill: #40372a; font: bold 17px Georgia; paint-order: stroke; stroke: #e8cb90; stroke-width: 5px; }
-.game-header, .side-panel, .timeline, .map-controls { position: absolute; z-index: 2; }.game-header { inset: 0 0 auto; height: 94px; padding: 23px 34px; display:flex; align-items:center; gap:24px; background: linear-gradient(#efe3c5ee, #efe3c500); }.game-header > div:first-child { margin-right:auto; }.eyebrow,.panel-kicker { font: 700 11px Inter,sans-serif; letter-spacing: 2px; color:#806340; }.game-header h1 { margin: 3px 0; font-size: 31px; letter-spacing: -1px; }.turn-chip { padding: 10px 16px; border: 1px solid #b99a6b; border-radius: 3px; background:#f4e7c9dd; font: 600 13px Inter,sans-serif; }.turn-dot { display:inline-block;width:8px;height:8px;border-radius:50%;background:#5c8665;margin-right:7px; }.icon-button,.map-controls button { border:1px solid #b99a6b; background:#f4e7c9dd; color:#5d6047; font-size:20px; width:40px;height:40px;border-radius:3px; }.side-panel { top:126px; left:28px; width:290px; padding:23px; background:#f1e5c9ed; border:1px solid #bc9c6a; box-shadow: 0 10px 30px #354d3a22; }.side-panel h2 { margin:6px 0 17px; font-size:26px; }.side-panel h3 { margin:8px 0 3px; font-size:23px; }.resource-row,.stat { display:flex;justify-content:space-between; font-family:Inter,sans-serif; font-size:13px; }.resource-row { font-weight:700; }.resource-row small { font-size:9px;color:#8d795b;letter-spacing:1px; }.rule { border-top:1px solid #c6aa7b; margin:22px 0; }.muted,.hint { color:#796f5c; font:13px/1.5 Inter,sans-serif; }.stat { padding:10px 0; border-top:1px solid #d3bc92; }.green { color:#517a5d; }.build-button { margin-top:15px;width:100%;padding:13px;border:0;border-radius:3px;background:#3e5c4a;color:#fff4d5;font:700 13px Inter,sans-serif; }.build-button span { float:right;color:#e7ce8b; }.build-button:disabled { opacity:.5; }.hint { font-size:11px;margin:17px 0 0;text-align:center; }.map-controls { right:28px; bottom:105px; display:grid; gap:5px; }.compass { position:absolute; bottom:120px; left:350px; color:#765d40; font:36px Georgia; text-align:center; }.compass span { display:block;font:700 12px Inter,sans-serif;margin-top:-9px; }.timeline { bottom:24px; left:28px; right:28px; display:flex;align-items:center;gap:16px; }.timeline-label { font:700 11px Inter,sans-serif;color:#5e654f; }.timeline-line { flex:1;height:4px;background:#b49a6f;position:relative; }.timeline-line i { display:block;width:42%;height:100%;background:#55765b; }.end-turn { padding:12px 18px;border:1px solid #a88859;background:#f1e5c9ed;color:#384d3d;border-radius:3px;font:700 12px Inter,sans-serif; }.end-turn span { font-size:19px;margin-left:15px; }
-@media (max-width: 700px) { .side-panel { top:auto; bottom:80px; left:14px; width:260px; padding:15px; }.game-header { padding:18px; }.turn-chip { display:none; }.compass { left:auto;right:22px;bottom:110px; }.timeline { left:14px;right:14px; }.map-controls { right:14px;bottom:175px; } }
 
 body {
   background:
