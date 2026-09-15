@@ -1,6 +1,3 @@
-
-
-
 Create a simple game with a map and the ability to build cities.
 
 
