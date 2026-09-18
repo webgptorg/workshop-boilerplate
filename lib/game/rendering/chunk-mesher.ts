@@ -16,6 +16,11 @@ export interface ShapeContext {
 }
 export type ShapeMesher = (context: ShapeContext) => void;
 
+const normalize = (x: number, y: number, z: number) => {
+  const length = Math.hypot(x, y, z) || 1;
+  return [x / length, y / length, z / length];
+};
+
 export const detailMeshers: ReadonlyMap<string, ShapeMesher> = new Map([
   ["tuft", ({ buffer, block, x, y, z, variation }: ShapeContext) => {
     for (let i = 0; i < 3; i++) {
@@ -55,8 +60,21 @@ export function meshChunk(world: VoxelWorld, cx: number, cz: number, shapes = de
   const heightAt = (x: number, z: number) => {
     const dx = Math.floor(x / size);
     const dz = Math.floor(z / size);
-    return neighborhood[(dz + 1) * 3 + dx + 1].heights[x - dx * size + size * (z - dz * size)];
+    const chunk = neighborhood[(dz + 1) * 3 + dx + 1] ?? world.getChunk(dx, dz);
+    return chunk.heights[x - dx * size + size * (z - dz * size)];
   };
+  // Surface samples are shared by neighboring columns. Averaging the four
+  // columns around a grid corner removes the hard stair-step from the visual
+  // surface while leaving the authoritative voxel heights untouched.
+  const surfaceSample = (x: number, z: number) => Math.max(heightAt(x, z) + 1, seaLevel + 1);
+  const surfaceAt = (x: number, z: number) => (
+    surfaceSample(x - 1, z - 1) + surfaceSample(x, z - 1) + surfaceSample(x - 1, z) + surfaceSample(x, z)
+  ) / 4;
+  const surfaceNormalAt = (x: number, z: number) => normalize(
+    surfaceAt(x, z) - surfaceAt(x + 1, z),
+    2,
+    surfaceAt(x, z) - surfaceAt(x, z + 1),
+  );
   for (let z = 0; z < size; z++) {
     for (let x = 0; x < size; x++) {
       // Buried columns have no visible faces. Edits expand the range for caves/tunnels.
@@ -94,18 +112,26 @@ export function meshChunk(world: VoxelWorld, cx: number, cz: number, shapes = de
             const cornerAO = occludes(x + diagonal[0], y + diagonal[1], z + diagonal[2]);
             return variation * (1 - (sideA && sideB ? 3 : sideA + sideB + cornerAO) * 0.065);
           });
-          const emit = (tint: RGB, lower = 0, upper = 1) => {
-            const points = face.corners.map(([vx, vy, vz]) => [wx + vx, y + (vy ? upper : lower), wz + vz]);
-            buffer.quad(points, face.normal, tint, shades);
+          const smoothSurface = !isWater && faceIndex === 0 && y === heightAt(x, z);
+          const emit = (tint: RGB, lower = 0, upper = 1, smoothTop = false) => {
+            const points = face.corners.map(([vx, vy, vz]) => [
+              wx + vx,
+              smoothTop && vy ? surfaceAt(wx + vx, wz + vz) : y + (vy ? upper : lower),
+              wz + vz,
+            ]);
+            const normals = smoothTop
+              ? face.corners.map(([vx, , vz]) => surfaceNormalAt(wx + vx, wz + vz))
+              : face.normal;
+            buffer.quad(points, normals, tint, shades);
           };
           if (id === BLOCK.grass && faceIndex >= 2) {
             emit(block.side, 0, 0.78);
-            emit(block.top, 0.78, 1);
+            emit(block.top, 0.78, 1, smoothSurface);
           } else if (isWater) {
             const depth = Math.min(8, Math.max(0, seaLevel - center.heights[x + size * z]));
             const tint: RGB = [color[0] - depth * 0.009, color[1] - depth * 0.009, color[2] - depth * 0.003];
             emit(tint);
-          } else emit(color);
+          } else emit(color, 0, 1, smoothSurface);
         }
       }
     }

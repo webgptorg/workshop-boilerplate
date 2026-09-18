@@ -17,11 +17,16 @@ export class GeometryBuffer {
   readonly indices: number[] = [];
   readonly colors: number[] = [];
 
-  quad(points: readonly (readonly number[])[], normal: readonly number[], color: RGB, shades: readonly number[] = [1, 1, 1, 1]) {
+  quad(
+    points: readonly (readonly number[])[],
+    normal: readonly number[] | readonly (readonly number[])[],
+    color: RGB,
+    shades: readonly number[] = [1, 1, 1, 1],
+  ) {
     const start = this.positions.length / 3;
     for (let i = 0; i < 4; i++) {
       this.positions.push(...points[i]);
-      this.normals.push(...normal);
+      this.normals.push(...Array.isArray(normal[0]) ? normal[i] as readonly number[] : normal as readonly number[]);
       this.colors.push(color[0] * shades[i], color[1] * shades[i], color[2] * shades[i], 1);
     }
     this.indices.push(start, start + 1, start + 2, start, start + 2, start + 3);
