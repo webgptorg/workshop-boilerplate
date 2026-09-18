@@ -5,7 +5,16 @@ Create a simple game with a map and the ability to build in 3D voxel space (like
 - The game should be the most prominent part of the app. It should fill the entire screen
 - The game is first-person perspective and user can look around freely.
 - For now, you are not implementing gameplay, like resources, game turns, or players. You are just drafting the perfect game map with free mode and free resources. 
-- For now, the game will be single-player versus some hard-coded AI.  
+- For now, the game will be single-player versus some hard-coded AI. 
+
+## Controls
+
+- W/A/S/D to move
+- Mouse to look around
+- Left click to place a block
+- Right click to remove a block
+- There is a graphical crosshair in the center of the screen for aiming.
+
 
 ## UI
 
