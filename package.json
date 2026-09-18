@@ -8,9 +8,11 @@
     "start": "next start",
     "lint": "eslint .",
     "typecheck": "tsc --noEmit",
-    "check": "npm run lint && npm run typecheck"
+    "check": "npm run lint && npm run typecheck",
+    "test": "tsx --test tests/*.test.ts"
   },
   "dependencies": {
+    "@babylonjs/core": "^9.27.0",
     "@promptbook/components": "latest",
     "leaflet": "1.9.4",
     "lucide-react": "0.536.0",
@@ -26,6 +28,7 @@
     "@types/react-dom": "latest",
     "eslint": "latest",
     "eslint-config-next": "latest",
+    "tsx": "^4.23.13",
     "typescript": "latest"
   }
 }

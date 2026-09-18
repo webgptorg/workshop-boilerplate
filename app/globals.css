@@ -374,3 +374,127 @@ h3,
     bottom: 16px;
   }
 }
+
+/* The game owns the viewport; the starter's brand tokens remain available above. */
+.voxel-game {
+  position: fixed;
+  inset: 0;
+  overflow: hidden;
+  background: #c5d3c2;
+  isolation: isolate;
+  user-select: none;
+  -webkit-user-select: none;
+}
+
+.world-canvas {
+  display: block;
+  width: 100%;
+  height: 100%;
+  outline: none;
+  touch-action: none;
+  opacity: 0;
+  transition: opacity 900ms ease;
+}
+
+.voxel-game[data-ready="true"] .world-canvas { opacity: 1; }
+
+.crosshair {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 17px;
+  height: 17px;
+  transform: translate(-50%, -50%);
+  pointer-events: none;
+  opacity: 0;
+  filter: drop-shadow(0 1px 1px rgb(28 40 32 / 30%));
+  transition: opacity 900ms ease;
+}
+
+.voxel-game[data-ready="true"] .crosshair { opacity: 0.83; }
+.crosshair span { position: absolute; border-radius: 1px; background: #fffef0; }
+.crosshair span:first-child { left: 8px; top: 2px; width: 1px; height: 13px; }
+.crosshair span:last-child { left: 2px; top: 8px; width: 13px; height: 1px; }
+
+.material-dock {
+  position: absolute;
+  bottom: max(26px, env(safe-area-inset-bottom));
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  align-items: center;
+  gap: 11px;
+  padding: 12px 14px;
+  border: 1px solid rgb(246 250 234 / 33%);
+  border-radius: 28px;
+  background: rgb(83 99 78 / 39%);
+  box-shadow: 0 16px 42px rgb(35 51 30 / 20%), inset 0 1px 1px rgb(255 255 255 / 24%);
+  backdrop-filter: blur(24px) saturate(115%);
+  -webkit-backdrop-filter: blur(24px) saturate(115%);
+}
+
+.material-slot {
+  position: relative;
+  display: grid;
+  place-items: center;
+  flex: 0 0 64px;
+  width: 64px;
+  height: 64px;
+  padding: 4px;
+  border: 2px solid transparent;
+  border-radius: 19px;
+  outline: none;
+  background: rgb(238 245 221 / 16%);
+  -webkit-tap-highlight-color: transparent;
+  transition: transform 220ms cubic-bezier(.2,.8,.2,1), background 180ms ease, box-shadow 180ms ease, border-color 180ms ease;
+}
+
+.material-swatch {
+  display: block;
+  width: 55px;
+  height: 55px;
+  overflow: visible;
+  filter: drop-shadow(0 3px 2px rgb(35 45 28 / 7%));
+  transition: transform 220ms ease;
+}
+
+.material-slot:hover { background: rgb(246 251 231 / 29%); transform: translateY(-5px); }
+.material-slot:hover .material-swatch { transform: translateY(-1px); }
+.material-slot[aria-pressed="true"] {
+  transform: translateY(-7px);
+  border-color: rgb(255 255 244 / 90%);
+  background: rgb(222 233 206 / 48%);
+  box-shadow: 0 7px 13px rgb(28 40 23 / 13%), 0 0 0 1px rgb(255 255 240 / 10%);
+}
+.material-slot:focus-visible { outline: 2px solid #fffef0; outline-offset: 4px; }
+.material-slot:active { transform: translateY(-3px) scale(.96); }
+
+.world-loading {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 7px;
+  pointer-events: none;
+}
+.world-loading span { width: 9px; height: 9px; border-radius: 2px; background: #718a62; animation: world-pulse 1.3s ease-in-out infinite; }
+.world-loading span:nth-child(2) { animation-delay: 150ms; }
+.world-loading span:nth-child(3) { animation-delay: 300ms; }
+@keyframes world-pulse { 0%, 80%, 100% { opacity: .3; transform: translateY(0); } 40% { opacity: .8; transform: translateY(-5px); } }
+.world-error { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 8px; padding: 30px; color: #3a503e; text-align: center; }
+.world-error p { max-width: 320px; font-size: 14px; line-height: 1.6; }
+.world-error button { border: 1px solid #7d927d; border-radius: 12px; padding: 10px 18px; background: #edf1e2; color: #3a503e; font-size: 13px; }
+.sr-only { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0, 0, 0, 0); white-space: nowrap; border: 0; }
+
+@media (max-width: 540px) {
+  .material-dock { gap: 6px; padding: 9px; border-radius: 23px; bottom: max(18px, env(safe-area-inset-bottom)); }
+  .material-slot { flex-basis: min(12vw, 58px); width: min(12vw, 58px); height: min(12vw, 58px); padding: 2px; border-radius: 15px; }
+  .material-swatch { width: 100%; height: 100%; }
+  .material-slot[aria-pressed="true"] { transform: translateY(-5px); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .material-slot, .material-swatch, .world-canvas, .crosshair { transition: none; }
+  .world-loading span { animation: none; }
+}
