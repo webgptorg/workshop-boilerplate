@@ -12,7 +12,7 @@ import type { Camera } from "@babylonjs/core/Cameras/camera";
 import { WORLD_CONFIG } from "../config";
 import { hash } from "../terrain/noise";
 import type { GameSystem } from "../types";
-import { PIXEL_GRAIN_GLSL, ProceduralSurfacePlugin } from "./procedural-textures";
+import { PIXEL_GRAIN_GLSL, PROCEDURAL_NOISE_GLSL, ProceduralSurfacePlugin } from "./procedural-textures";
 import { GeometryBuffer } from "./geometry";
 
 const SHADOW_MAP_SIZE = 2048;
@@ -60,7 +60,7 @@ export class Atmosphere implements GameSystem {
     this.shadows.normalBias = 0.12;
     this.shadows.frustumEdgeFalloff = 0.15;
     this.shadows.setDarkness(0.2);
-    this.skyMaterial = new ShaderMaterial("sky-gradient", scene, {
+    this.skyMaterial = new ShaderMaterial("procedural-sky", scene, {
       vertexSource: `
         precision highp float;
         attribute vec3 position;
@@ -71,16 +71,20 @@ export class Atmosphere implements GameSystem {
       fragmentSource: `
         precision highp float;
         varying vec3 vDirection;
+        ${PROCEDURAL_NOISE_GLSL}
         ${PIXEL_GRAIN_GLSL}
         void main() {
           vec3 direction = normalize(vDirection);
-          float height = smoothstep(-0.05, 0.85, direction.y);
+          // Direction-space noise is continuous across sky-box faces and still in time.
+          float atmosphere = layeredNoise(direction * 14.0);
+          float detail = layeredNoise(direction * 85.0);
+          float height = clamp(direction.y * 0.85 + 0.15 + atmosphere * 0.5, 0.0, 1.0);
           vec3 horizon = vec3(0.80, 0.86, 0.83);
           vec3 zenith = vec3(0.48, 0.68, 0.77);
-          vec3 sky = mix(horizon, zenith, height);
+          vec3 sky = mix(horizon, zenith, height) + vec3(atmosphere * 0.055 + detail * 0.035);
           float sun = max(0.0, dot(direction, normalize(vec3(-0.6, 1.0, -0.45))));
           sky += vec3(0.12, 0.095, 0.045) * pow(sun, 10.0);
-          sky = mix(sky, vec3(1.0, 0.96, 0.78), smoothstep(0.9985, 0.9992, sun));
+          sky = mix(sky, vec3(1.0, 0.96, 0.78) + vec3(detail * 0.035), smoothstep(0.9985, 0.9992, sun));
           gl_FragColor = vec4(sky + vec3(pixelGrain() * 0.012), 1.0);
         }
       `,

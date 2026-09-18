@@ -15,7 +15,7 @@ The game should contain the textures.
 
 ---
 
-[ ]
+[x]
 
 Enhance game textures and add procedural noise
 
