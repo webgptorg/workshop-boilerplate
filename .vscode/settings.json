@@ -1,0 +1,5 @@
+{
+    "markdown.copyFiles.destination": {
+        "prompts/*md": "screenshots/${documentBaseName}.png"
+    }
+}
