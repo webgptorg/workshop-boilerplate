@@ -64,12 +64,12 @@ export class VoxelWorld implements BlockAccess {
     const edit: SavedEdit = [x, y, z, id];
     chunkEdits.set(blockKey(x, y, z), edit);
     this.applyToChunk(this.getChunk(cx, cz), edit);
-    // Interior edits affect one mesh; boundary edits also affect neighboring faces/AO.
+    // Relaxed terrain vertices sample a two-block halo, including diagonal chunks.
     this.dirty.add(key);
     const localX = x - cx * size;
     const localZ = z - cz * size;
-    const offsetsX = localX === 0 ? [0, -1] : localX === size - 1 ? [0, 1] : [0];
-    const offsetsZ = localZ === 0 ? [0, -1] : localZ === size - 1 ? [0, 1] : [0];
+    const offsetsX = localX < 2 ? [0, -1] : localX >= size - 2 ? [0, 1] : [0];
+    const offsetsZ = localZ < 2 ? [0, -1] : localZ >= size - 2 ? [0, 1] : [0];
     for (const dx of offsetsX) {
       for (const dz of offsetsZ) this.dirty.add(chunkKey(cx + dx, cz + dz));
     }

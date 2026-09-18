@@ -17,6 +17,16 @@ export class GeometryBuffer {
   readonly indices: number[] = [];
   readonly colors: number[] = [];
 
+  surfaceQuad(vertices: readonly SurfaceVertex[]) {
+    const start = this.positions.length / 3;
+    for (const vertex of vertices) {
+      this.positions.push(...vertex.position);
+      this.normals.push(...vertex.normal);
+      this.colors.push(...vertex.color, 1);
+    }
+    this.indices.push(start, start + 1, start + 2, start, start + 2, start + 3);
+  }
+
   quad(points: readonly (readonly number[])[], normal: readonly number[], color: RGB, shades: readonly number[] = [1, 1, 1, 1]) {
     const start = this.positions.length / 3;
     for (let i = 0; i < 4; i++) {
@@ -41,4 +51,10 @@ export class GeometryBuffer {
     data.colors = this.colors;
     data.applyToMesh(mesh);
   }
+}
+
+export interface SurfaceVertex {
+  readonly position: readonly number[];
+  readonly normal: readonly number[];
+  readonly color: RGB;
 }

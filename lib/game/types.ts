@@ -13,6 +13,8 @@ export interface BlockDefinition {
   readonly name: string;
   readonly solid: boolean;
   readonly opaque: boolean;
+  /** Earth-like blocks share a smooth visual surface; the underlying grid stays intact. */
+  readonly terrain?: boolean;
   readonly buildable?: boolean;
   readonly shape?: "cube" | "tuft" | "flower";
   readonly top: RGB;
