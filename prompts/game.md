@@ -21,6 +21,7 @@ Create a simple game with a map and the ability to build in 3D voxel space (like
 - The UI should be minimalistic. 
 - There should be no bullshit texts or things. There should be just a very simple, minimalistic tray with materials for building in the game.
 - Get inspiration from the Mac app tray. 
+    - ![this is how the game tray should look](screenshots/game.png)
 - There should be only a map and a simple tray on the bottom with the buildings. 
 - No branding, compass, controls, some fake game information, etc. This will be added later. 
 
@@ -38,6 +39,10 @@ Create a simple game with a map and the ability to build in 3D voxel space (like
     - gravel
     - wood
     - water
+
+## Technical Requirements
+
+- Use Babylon.js for rendering the 3D voxel environment.
 
 ## Code quality
 
