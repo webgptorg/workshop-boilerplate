@@ -1,5 +1,6 @@
 import { VertexData } from "@babylonjs/core/Meshes/mesh.vertexData";
 import type { Mesh } from "@babylonjs/core/Meshes/mesh";
+import { TEXTURE_ATTRIBUTES, textureWeights } from "./texture-weights";
 import type { RGB, Vec3 } from "../types";
 
 export const FACES = [
@@ -16,6 +17,14 @@ export class GeometryBuffer {
   readonly normals: number[] = [];
   readonly indices: number[] = [];
   readonly colors: number[] = [];
+  readonly textures: number[][] = [[], [], []];
+  materialId = 0;
+
+  private texture(weights: readonly number[] = textureWeights(this.materialId)) {
+    for (let group = 0; group < 3; group++) {
+      this.textures[group].push(...weights.slice(group * 4, group * 4 + 4));
+    }
+  }
 
   surfaceQuad(vertices: readonly SurfaceVertex[]) {
     const start = this.positions.length / 3;
@@ -23,6 +32,7 @@ export class GeometryBuffer {
       this.positions.push(...vertex.position);
       this.normals.push(...vertex.normal);
       this.colors.push(...vertex.color, 1);
+      this.texture(vertex.textureWeights);
     }
     this.indices.push(start, start + 1, start + 2, start, start + 2, start + 3);
   }
@@ -33,6 +43,7 @@ export class GeometryBuffer {
       this.positions.push(...points[i]);
       this.normals.push(...normal);
       this.colors.push(color[0] * shades[i], color[1] * shades[i], color[2] * shades[i], 1);
+      this.texture();
     }
     this.indices.push(start, start + 1, start + 2, start, start + 2, start + 3);
   }
@@ -50,6 +61,7 @@ export class GeometryBuffer {
     data.indices = this.indices;
     data.colors = this.colors;
     data.applyToMesh(mesh);
+    TEXTURE_ATTRIBUTES.forEach((name, i) => mesh.setVerticesData(name, this.textures[i], false, 4));
   }
 }
 
@@ -57,4 +69,5 @@ export interface SurfaceVertex {
   readonly position: readonly number[];
   readonly normal: readonly number[];
   readonly color: RGB;
+  readonly textureWeights?: readonly number[];
 }

@@ -1,6 +1,7 @@
 import { Color3 } from "@babylonjs/core/Maths/math.color";
 import { StandardMaterial } from "@babylonjs/core/Materials/standardMaterial";
 import { ShaderMaterial } from "@babylonjs/core/Materials/shaderMaterial";
+import { MATERIAL_PATTERNS_GLSL } from "./material-patterns";
 import { PIXEL_GRAIN_GLSL, SURFACE_TEXTURE_GLSL, ProceduralSurfacePlugin } from "./procedural-textures";
 import type { Scene } from "@babylonjs/core/scene";
 
@@ -41,10 +42,11 @@ export function createWaterMaterial(scene: Scene) {
       uniform vec3 fogColor;
       uniform vec2 fogRange;
       ${SURFACE_TEXTURE_GLSL}
+      ${MATERIAL_PATTERNS_GLSL}
       ${PIXEL_GRAIN_GLSL}
       void main() {
-        // Long, irregular polygon facets suggest calm water without scrolling.
-        vec3 base = vColor * (1.0 + surfaceTexture(vPosition * vec3(0.4, 1.0, 1.3), vNormal) * 0.20);
+        // Broad swells, crossing ripples and small glints remain still in time.
+        vec3 base = vColor * waterPattern(vPosition, vNormal);
         base *= 0.91 + max(vNormal.y, 0.0) * 0.09;
         float fog = smoothstep(fogRange.x, fogRange.y, length(eye - vPosition));
         gl_FragColor = vec4(clamp(mix(base, fogColor, fog) + vec3(pixelGrain() * 0.018), 0.0, 1.0), 1.0);

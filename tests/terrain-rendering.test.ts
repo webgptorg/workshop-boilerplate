@@ -3,7 +3,7 @@ import test from "node:test";
 import { BLOCK, blocks } from "../lib/game/blocks";
 import { WORLD_CONFIG } from "../lib/game/config";
 import { meshChunk } from "../lib/game/rendering/chunk-mesher";
-import type { GeometryBuffer } from "../lib/game/rendering/geometry";
+import { GeometryBuffer } from "../lib/game/rendering/geometry";
 import { TerrainSurface } from "../lib/game/rendering/terrain-surface";
 import { defaultBiomes } from "../lib/game/terrain/biomes";
 import { TerrainGenerator } from "../lib/game/terrain/generator";
@@ -19,7 +19,10 @@ function vertices(buffer: GeometryBuffer) {
   const result = new Map<string, number[]>();
   for (let i = 0; i < buffer.positions.length / 3; i++) {
     const key = buffer.positions.slice(i * 3, i * 3 + 3).join(",");
-    const attributes = [...buffer.normals.slice(i * 3, i * 3 + 3), ...buffer.colors.slice(i * 4, i * 4 + 4)];
+    const weights = buffer.textures.flatMap((group) => group.slice(i * 4, i * 4 + 4));
+    assert.ok(Math.abs(weights.reduce((sum, value) => sum + value, 0) - 1) < 1e-10);
+    assert.ok(weights.every((value) => value >= 0 && value <= 1));
+    const attributes = [...buffer.normals.slice(i * 3, i * 3 + 3), ...buffer.colors.slice(i * 4, i * 4 + 4), ...weights];
     if (result.has(key)) assert.deepEqual(attributes, result.get(key), "shared vertices have continuous shading");
     result.set(key, attributes);
     assert.ok(Math.abs(Math.hypot(...attributes.slice(0, 3)) - 1) < 1e-10);
@@ -85,5 +88,28 @@ test("surface extraction preserves a cave ceiling and a disconnected terrain blo
     const vertices = isolated.face(0, 0, 0, face);
     assert.ok(vertices.every((vertex) => [...vertex.position, ...vertex.normal].every(Number.isFinite)));
     assert.equal(new Set(vertices.map((vertex) => vertex.position.join(","))).size, 4);
+  }
+});
+
+
+test("terrain blends texture identities without inventing intervening block IDs", () => {
+  const surface = new TerrainSurface((x, y) => y <= 0 ? (x < 0 ? BLOCK.grass : BLOCK.rock) : BLOCK.air, blocks);
+  const weights = surface.vertex(-1, 0, 0).textureWeights!;
+  assert.ok(weights[BLOCK.grass] > 0 && weights[BLOCK.rock] > 0);
+  assert.equal(weights[BLOCK.sand], 0);
+  assert.ok(Math.abs(weights.reduce((sum, weight) => sum + weight, 0) - 1) < 1e-10);
+});
+
+test("cubic features and detail shapes carry material identities independently of tint", () => {
+  const buffer = new GeometryBuffer();
+  for (const id of [BLOCK.wood, BLOCK.leaves, BLOCK.pine, BLOCK.grassTuft, BLOCK.flower, 200]) {
+    buffer.materialId = id;
+    const start = buffer.positions.length / 3;
+    buffer.box({ x: 0, y: 0, z: 0 }, { x: 1, y: 1, z: 1 }, [0.5, 0.5, 0.5]);
+    for (let i = start; i < start + 24; i++) {
+      const weights = buffer.textures.flatMap((group) => group.slice(i * 4, i * 4 + 4));
+      assert.equal(weights[id < 12 ? id : 0], 1);
+      assert.equal(weights.reduce((sum, value) => sum + value, 0), 1);
+    }
   }
 });

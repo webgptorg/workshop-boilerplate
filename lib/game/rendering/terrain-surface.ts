@@ -1,11 +1,13 @@
 import type { BlockRegistry } from "../blocks";
 import type { BlockId } from "../types";
+import { TEXTURE_SLOTS, textureWeights } from "./texture-weights";
 import { FACES, type SurfaceVertex } from "./geometry";
 
 const CORNERS = Array.from({ length: 8 }, (_, i) => [i & 1, (i >> 1) & 1, (i >> 2) & 1]);
 const EDGES = CORNERS.flatMap((_, i) => [0, 1, 2].filter((axis) => !(i & (1 << axis))).map((axis) => [i, i | (1 << axis), axis]));
 
 interface SurfaceCell extends SurfaceVertex {
+  readonly textureWeights: readonly number[];
   readonly neighbors: readonly (readonly number[])[];
 }
 
@@ -38,6 +40,7 @@ export class TerrainSurface {
     const position = [0, 0, 0];
     const normal = [0, 0, 0];
     const color = [0, 0, 0];
+    const textures = Array<number>(TEXTURE_SLOTS).fill(0);
     let crossings = 0;
     for (const [a, b, axis] of EDGES) {
       if (inside[a] === inside[b]) continue;
@@ -45,6 +48,7 @@ export class TerrainSurface {
       for (let i = 0; i < 3; i++) position[i] += (CORNERS[a][i] + CORNERS[b][i]) / 2;
       normal[axis] += inside[a] ? 1 : -1;
       const block = blocks[inside[a] ? a : b]!;
+      textureWeights(block.id).forEach((value, i) => { textures[i] += value; });
       for (let i = 0; i < 3; i++) color[i] += block.top[i];
     }
     const neighbors: number[][] = [];
@@ -58,6 +62,7 @@ export class TerrainSurface {
       position: position.map((value, axis) => [x, y, z][axis] + 0.5 + value / crossings),
       normal,
       color: [color[0] / crossings, color[1] / crossings, color[2] / crossings],
+      textureWeights: textures.map((value) => value / crossings),
       neighbors,
     };
     this.cells.set(key, cell);
@@ -73,11 +78,13 @@ export class TerrainSurface {
     const position = cell.position.map((value) => value * 2);
     const normal = cell.normal.map((value) => value * 2);
     const color = cell.color.map((value) => value * 2);
+    const textures = cell.textureWeights.map((value) => value * 2);
     let weight = 2;
     for (const [dx, dy, dz] of cell.neighbors) {
       const neighbor = this.cell(x + dx, y + dy, z + dz);
       if (!neighbor) continue;
       weight++;
+      neighbor.textureWeights.forEach((value, i) => { textures[i] += value; });
       for (let axis = 0; axis < 3; axis++) {
         position[axis] += neighbor.position[axis];
         normal[axis] += neighbor.normal[axis];
@@ -89,6 +96,7 @@ export class TerrainSurface {
       position: position.map((value) => value / weight),
       normal: length > 0 ? normal.map((value) => value / length) : [0, 1, 0],
       color: [color[0] / weight, color[1] / weight, color[2] / weight],
+      textureWeights: textures.map((value) => value / weight),
     };
     this.vertices.set(key, vertex);
     return vertex;

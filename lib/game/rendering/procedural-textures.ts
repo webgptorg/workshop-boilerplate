@@ -1,5 +1,8 @@
 import { MaterialPluginBase } from "@babylonjs/core/Materials/materialPluginBase";
 import type { StandardMaterial } from "@babylonjs/core/Materials/standardMaterial";
+import { BLOCK } from "../blocks";
+import { MATERIAL_PATTERNS_GLSL } from "./material-patterns";
+import { TEXTURE_ATTRIBUTES } from "./texture-weights";
 import { WORLD_CONFIG } from "../config";
 
 /** Seeded, continuous 3D value noise shared by the sky and every surface.
@@ -43,7 +46,7 @@ export const SURFACE_TEXTURE_GLSL = `
     h += dot(h, h.yzx + 33.33);
     return fract((h.xx + h.yz) * h.zy);
   }
-  float polygonTexture(vec2 p) {
+  vec3 polygonCells(vec2 p) {
     p += vec2(${(WORLD_CONFIG.seed % 997).toFixed(1)}, ${(WORLD_CONFIG.seed % 619).toFixed(1)});
     vec2 cell = floor(p);
     vec2 local = fract(p);
@@ -72,18 +75,18 @@ export const SURFACE_TEXTURE_GLSL = `
     // Antialias polygon boundaries and fade subpixel cells into their mean.
     float footprint = max(length(dFdx(p)), length(dFdy(p)));
     float edge = smoothstep(0.0, max(0.001, footprint * 1.4), second - nearest);
-    return (mix((tone + secondTone) * 0.5, tone, edge) - 0.5)
-      * (1.0 - smoothstep(0.35, 1.2, footprint));
+    float visible = 1.0 - smoothstep(0.35, 1.2, footprint);
+    return mix(vec3(0.0, 0.3, 0.2),
+      vec3(mix((tone + secondTone) * 0.5, tone, edge) - 0.5, second - nearest, nearest), visible);
   }
-  float surfaceTexture(vec3 p, vec3 normal) {
+  vec3 surfaceCells(vec3 p, vec3 normal) {
     vec3 weights = pow(abs(normal), vec3(8.0));
     weights /= max(dot(weights, vec3(1.0)), 0.001);
-    float facets = dot(vec3(polygonTexture(p.yz * 3.4),
-                            polygonTexture(p.xz * 3.4),
-                            polygonTexture(p.xy * 3.4)), weights);
-    // Smaller facets establish the low-poly style; continuous fine noise breaks
-    // up their interiors so even a close-up face never becomes a flat fill.
-    return facets * 0.65 + layeredNoise(p * 9.0) * 0.85;
+    return polygonCells(p.yz) * weights.x
+      + polygonCells(p.xz) * weights.y + polygonCells(p.xy) * weights.z;
+  }
+  float surfaceTexture(vec3 p, vec3 normal) {
+    return surfaceCells(p * 3.4, normal).x * 0.65 + layeredNoise(p * 9.0) * 0.85;
   }
 `;
 
@@ -97,6 +100,21 @@ export const PIXEL_GRAIN_GLSL = `
   }
 `;
 
+const materialRecipes = [
+  [BLOCK.grass, "grassPattern(p)"],
+  [BLOCK.sand, "sandPattern(p)"],
+  [BLOCK.rock, "rockPattern(p, n)"],
+  [BLOCK.gravel, "gravelPattern(p, n)"],
+  [BLOCK.wood, "woodPattern(p, n)"],
+  [BLOCK.water, "waterPattern(p, n)"],
+  [BLOCK.soil, "soilPattern(p, n)"],
+  [BLOCK.leaves, "leavesPattern(p, n)"],
+  [BLOCK.grassTuft, "tuftPattern(p)"],
+  [BLOCK.flower, "flowerPattern(p)"],
+  [BLOCK.pine, "pinePattern(p)"],
+] as const;
+const textureVaryings = TEXTURE_ATTRIBUTES.map((_, i) => `varying vec4 vTextureWeights${i};`).join("\n");
+
 /** Retain Babylon's lighting, vertex colors, fog and shadows. Object coordinates
  * keep moving creatures/clouds attached to their texture; chunk vertices already
  * use world coordinates, so adjacent chunks sample exactly the same pattern.
@@ -108,19 +126,38 @@ export class ProceduralSurfacePlugin extends MaterialPluginBase {
     this._enable(true);
   }
 
+  override getAttributes(attributes: string[]) {
+    attributes.push(...TEXTURE_ATTRIBUTES);
+  }
+
   override getCustomCode(shaderType: string): Record<string, string> | null {
     if (shaderType === "vertex") return {
-      CUSTOM_VERTEX_DEFINITIONS: "varying vec3 vSurfacePosition; varying vec3 vSurfaceNormal;",
-      CUSTOM_VERTEX_MAIN_BEGIN: "vSurfacePosition = position; vSurfaceNormal = normal;",
+      CUSTOM_VERTEX_DEFINITIONS: `varying vec3 vSurfacePosition; varying vec3 vSurfaceNormal;
+        ${textureVaryings}
+        ${TEXTURE_ATTRIBUTES.map((name) => `attribute vec4 ${name};`).join("\n")}` ,
+      CUSTOM_VERTEX_MAIN_BEGIN: `vSurfacePosition = position; vSurfaceNormal = normal;
+        ${TEXTURE_ATTRIBUTES.map((name, i) => `vTextureWeights${i} = ${name};`).join("\n")}` ,
     };
     if (shaderType === "fragment") return {
       CUSTOM_FRAGMENT_DEFINITIONS: `
         varying vec3 vSurfacePosition;
         varying vec3 vSurfaceNormal;
+        ${textureVaryings}
         ${SURFACE_TEXTURE_GLSL}
+        ${MATERIAL_PATTERNS_GLSL}
         ${PIXEL_GRAIN_GLSL}
+        vec3 materialPattern(vec3 p, vec3 n) {
+          vec3 result = vec3(0.0);
+          if (vTextureWeights0.x > 0.0) result += vTextureWeights0.x
+            * vec3(1.0 + surfaceTexture(p, n) * ${this.strength.toFixed(3)});
+          ${materialRecipes.map(([id, recipe]) => {
+            const weight = `vTextureWeights${Math.floor(id / 4)}.${"xyzw"[id % 4]}`;
+            return `if (${weight} > 0.0) result += ${weight} * ${recipe};`;
+          }).join("\n")}
+          return clamp(result, vec3(0.55), vec3(1.45));
+        }
       `,
-      CUSTOM_FRAGMENT_UPDATE_DIFFUSE: `baseColor.rgb *= 1.0 + surfaceTexture(vSurfacePosition, normalize(vSurfaceNormal)) * ${this.strength.toFixed(3)};`,
+      CUSTOM_FRAGMENT_UPDATE_DIFFUSE: "baseColor.rgb *= materialPattern(vSurfacePosition, normalize(vSurfaceNormal));",
       CUSTOM_FRAGMENT_BEFORE_FRAGCOLOR: "color.rgb = clamp(color.rgb + vec3(pixelGrain() * 0.018), 0.0, 1.0);",
     };
     return null;

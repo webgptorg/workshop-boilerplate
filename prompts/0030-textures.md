@@ -26,7 +26,7 @@ Enhance game textures and add procedural noise
 
 ---
 
-[ ]
+[x]
 
 Enhance game textures to make them more visually appealing and natural
 

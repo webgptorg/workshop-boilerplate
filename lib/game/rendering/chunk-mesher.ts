@@ -24,7 +24,9 @@ export const detailMeshers: ReadonlyMap<string, ShapeMesher> = new Map([
     }
   }],
   ["flower", ({ buffer, block, x, y, z }: ShapeContext) => {
+    buffer.materialId = BLOCK.grassTuft;
     buffer.box({ x: x + 0.46, y, z: z + 0.46 }, { x: 0.045, y: 0.29, z: 0.045 }, [0.40, 0.52, 0.26]);
+    buffer.materialId = BLOCK.flower;
     buffer.box({ x: x + 0.39, y: y + 0.24, z: z + 0.39 }, { x: 0.18, y: 0.075, z: 0.18 }, block.top);
   }],
 ]);
@@ -34,6 +36,7 @@ export function meshChunk(world: VoxelWorld, cx: number, cz: number, shapes = de
   const { chunkSize: size, seaLevel } = WORLD_CONFIG;
   const solid = new GeometryBuffer();
   const water = new GeometryBuffer();
+  water.materialId = BLOCK.water;
   const neighborhood: TerrainChunk[] = [];
   let lowestEdit = Infinity;
   for (let dz = -1; dz <= 1; dz++) {
@@ -91,6 +94,7 @@ export function meshChunk(world: VoxelWorld, cx: number, cz: number, shapes = de
         if (id === BLOCK.air) continue;
         const block = world.registry.get(id);
         if (!block) continue;
+        solid.materialId = id;
         const variation = 0.965 + hash(wx, wz + y * 59, world.generator.seed) * 0.07;
         const shape = block.shape && shapes.get(block.shape);
         if (shape) {

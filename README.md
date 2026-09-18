@@ -53,6 +53,8 @@ Block edits and the player's position are saved to this browser's local storage 
 | `lib/game/game.ts` | Composes the engine, input, world, and simulation systems; owns their lifecycle. |
 | `components/game/` | Client boundary, accessible material dock, canvas, and exceptional loading/error states. |
 
+Surface textures are generated in shaders from the world seed, without image assets. `rendering/material-patterns.ts` defines separate multi-scale recipes for grass, sand, rock, gravel, wood, water, soil, leaves, meadow grass, flowers, and pine. Broad patches and strata remain visible at a distance while grains, fibers, veins, and pores fade before becoming subpixel. Static screen-pixel grain supplies the finest detail. Terrain vertices carry normalized material weights so patterns blend across biome and chunk boundaries; moving objects use local coordinates to keep textures attached. New built-in texture recipes need a slot in `texture-weights.ts` and a mapping in `procedural-textures.ts`; unrecognized block IDs use the neutral procedural fallback.
+
 Keep saved block IDs stable. Add content through the registries and plugin interfaces, and add simulation systems through the `GameSystem` interface. World, rendering, and movement settings live in `lib/game/config.ts`. The original Promptbook brand tokens are retained in `app/globals.css`; the game displays no branding.
 
 ## Verify
