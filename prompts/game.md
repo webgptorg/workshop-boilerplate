@@ -10,10 +10,13 @@ Create a simple game with a map and the ability to build in 3D voxel space (like
 ## Controls
 
 - W/A/S/D to move
+- Arrow keys to look around
 - Mouse to look around
+- Spacebar to jump
 - Left click to place a block
 - Right click to remove a block
 - There is a graphical crosshair in the center of the screen for aiming.
+
 
 
 ## UI
@@ -22,13 +25,20 @@ Create a simple game with a map and the ability to build in 3D voxel space (like
 - There should be no bullshit texts or things. There should be just a very simple, minimalistic tray with materials for building in the game.
 - Get inspiration from the Mac app tray. 
     - ![this is how the game tray should look](screenshots/game.png)
+    - There should be no text or additional UI elements cluttering the tray. Just simple minimalistic as you see in the screenshot.
 - There should be only a map and a simple tray on the bottom with the buildings. 
 - No branding, compass, controls, some fake game information, etc. This will be added later. 
+
+## Game mechanics
+
+- There is a gravity in the game
+- Player is moving on the ground
+- When there is one block hill, the player should be able to walk up it smoothly.
+
 
 ## Graphics
 
 - The graphics should have a consistent low-poly, 3D voxel style in first-person perspective.
-- The light should be only emissive. There should be no shadows in the game. 
 
 ## Materials
 
@@ -39,6 +49,20 @@ Create a simple game with a map and the ability to build in 3D voxel space (like
     - gravel
     - wood
     - water
+
+## World Generation
+
+Terrain should cover the entire map
+Train is procedurally generated, and the game map is technically infinite.
+There are two general types of terrain: water and ground.
+On the ground, there should be multiple tiles, like grass, sand, rocks, trees, forests, and gravel,...
+The data for the terrain are grid-based
+
+Ocean - do not distinguish between types of water. There should be just one type of water for sea, ocean, deep water, rivers, etc. The multiple types of water will be added later.
+
+There should be some procedural algorithm which can generate an infinitely large map which makes sense. It has natural-looking islands, rivers, mountains, deserts, etc.
+
+Get inspiration from Minecraft and other procedurally generated games.
 
 ## Technical Requirements
 
