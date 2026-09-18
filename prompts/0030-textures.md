@@ -11,3 +11,14 @@ The game should contain the textures.
 - The textures should be procedurally generated.
 - Use some noise algorithm, which will be applied to the textures.
     - The noise should be very fine. Each pixel screen should be the noise pixel itself.
+
+
+---
+
+[ ]
+
+Enhance game textures and add procedural noise
+
+- The procedurally generated textures should have smaller details, making them appear more refined
+- There shouldn't be solid colors or simple gradients used. Instead, use a noise generator.
+- The noise should be also procedurally generated.
