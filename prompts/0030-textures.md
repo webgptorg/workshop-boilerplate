@@ -1,5 +1,5 @@
 
-[x]
+[ ]
 
 The game should contain the textures.
 

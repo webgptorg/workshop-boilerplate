@@ -13,7 +13,6 @@ import { WORLD_CONFIG } from "../config";
 import { hash } from "../terrain/noise";
 import type { GameSystem } from "../types";
 import { GeometryBuffer } from "./geometry";
-import { SurfaceTexture, SURFACE_TEXTURE_GLSL } from "./surface-texture";
 
 const SHADOW_MAP_SIZE = 2048;
 const SHADOW_SPAN = 112;
@@ -71,14 +70,12 @@ export class Atmosphere implements GameSystem {
       fragmentSource: `
         precision highp float;
         varying vec3 vDirection;
-        ${SURFACE_TEXTURE_GLSL}
         void main() {
           vec3 direction = normalize(vDirection);
           float height = smoothstep(-0.05, 0.85, direction.y);
           vec3 horizon = vec3(0.80, 0.86, 0.83);
           vec3 zenith = vec3(0.48, 0.68, 0.77);
           vec3 sky = mix(horizon, zenith, height);
-          sky *= mix(1.0, surfaceTexture(direction * 30.0), 0.12);
           float sun = max(0.0, dot(direction, normalize(vec3(-0.6, 1.0, -0.45))));
           sky += vec3(0.12, 0.095, 0.045) * pow(sun, 10.0);
           sky = mix(sky, vec3(1.0, 0.96, 0.78), smoothstep(0.9985, 0.9992, sun));
@@ -97,7 +94,6 @@ export class Atmosphere implements GameSystem {
     this.cloudMaterial.emissiveColor = new Color3(0.20, 0.21, 0.20);
     this.cloudMaterial.specularColor = Color3.Black();
     this.cloudMaterial.disableLighting = false;
-    new SurfaceTexture(this.cloudMaterial);
     for (let i = 0; i < 22; i++) {
       const geometry = new GeometryBuffer();
       const seed = WORLD_CONFIG.seed + i * 47;
