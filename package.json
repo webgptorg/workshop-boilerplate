@@ -11,7 +11,6 @@
     "check": "npm run lint && npm run typecheck"
   },
   "dependencies": {
-    "@babylonjs/core": "^9.27.0",
     "@promptbook/components": "latest",
     "leaflet": "1.9.4",
     "lucide-react": "0.536.0",
