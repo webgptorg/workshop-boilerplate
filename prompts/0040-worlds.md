@@ -14,7 +14,7 @@ The game should, contain multiple worlds.
 
 ---
 
-[ ]
+[x]
 
 The welcome screen should look better.
 

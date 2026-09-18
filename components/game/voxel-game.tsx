@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { ArrowLeft, Compass } from "lucide-react";
 import { loadWorld, type SavedWorld } from "@/lib/game/saves";
 import { useEffect, useRef, useState } from "react";
 import type { VoxelGame as Game } from "@/lib/game/game";
@@ -48,7 +49,8 @@ export function VoxelGame({ savedWorld }: { savedWorld: SavedWorld }) {
   return (
     <main className="voxel-game" data-ready={ready} aria-label="Voxel sandbox">
       <nav className="world-navigation" aria-label="World navigation">
-        <Link href="/">← Worlds</Link><span>{savedWorld.name}</span>
+        <Link href="/" className="world-menu-back" aria-label="Back to world selection"><ArrowLeft size={17} aria-hidden="true" /><span>Worlds</span></Link>
+        <span className="world-current-name"><Compass size={15} aria-hidden="true" />{savedWorld.name}</span>
       </nav>
       {saveError && <p className="world-save-error" role="alert">{saveError}</p>}
       <canvas
