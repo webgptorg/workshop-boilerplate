@@ -108,6 +108,20 @@ export class CharacterBody {
     this.stepOffset *= Math.exp(-14 * delta);
   }
 
+  /** Move without gravity while retaining solid-block collision on every axis. */
+  fly(delta: number, velocityX: number, velocityY: number, velocityZ: number) {
+    const steps = Math.max(1, Math.ceil(delta / (1 / 120)));
+    const dt = delta / steps;
+    this.velocityY = 0;
+    this.grounded = false;
+    for (let step = 0; step < steps; step++) {
+      this.moveFree("x", velocityX * dt);
+      this.moveFree("z", velocityZ * dt);
+      this.moveFree("y", velocityY * dt);
+    }
+    this.stepOffset *= Math.exp(-14 * delta);
+  }
+
   private moveHorizontal(axis: "x" | "z", amount: number) {
     if (amount === 0) return;
     const p = this.position;
@@ -136,5 +150,13 @@ export class CharacterBody {
       p.y = raised;
       p[axis] += amount;
     }
+  }
+
+  private moveFree(axis: "x" | "y" | "z", amount: number) {
+    if (amount === 0) return;
+    const p = this.position;
+    const next = { x: p.x, y: p.y, z: p.z };
+    next[axis] += amount;
+    if (!this.collides(next.x, next.y, next.z)) p[axis] = next[axis];
   }
 }

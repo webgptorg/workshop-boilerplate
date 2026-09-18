@@ -40,7 +40,9 @@ A deterministic seed generates continuous terrain in 16×16 chunks: islands, bea
 
 Only exposed faces are meshed, with vertex color variation, ambient occlusion, sunlight, shadows, and distance haze. Water shares one material with animated surface highlights. Placed water is a static voxel; fluid simulation is not implemented.
 
-Block edits and the player's position are saved to this browser's local storage every few seconds and when leaving the page. Edits survive chunk unloading and reloading. If storage is unavailable or full, the session continues in memory. Saves are local to a browser and origin, not synchronized with a server.
+The welcome screen lets you create, enter, and delete named worlds. Each world has a separate terrain seed and a URL such as `/worlds/my-world`. Duplicate names receive distinct URL suffixes. Use the Worlds link in the game to return to the welcome screen.
+
+Each world is stored under `v3:voxel-garden:world:<id>`, with the prefix controlled by `SAVE_VERSION` in `lib/game/config.ts`. Older save versions are ignored; there is no migration or backward compatibility. The save includes the terrain seed, block edits, player position and view direction, flight mode, and selected material. It is updated every few seconds and when leaving the world or hiding the page. Edits survive chunk unloading and reloading. Save failures show an in-game warning. Saves are local to a browser and origin, not synchronized with a server; opening a world URL elsewhere does not transfer its save.
 
 The current storage key is `voxel-garden:world:v2`, defined in `lib/game/config.ts`. To reset a world, close the game, remove that key from the site's local storage using browser developer tools, then reopen the game. This deletes the saved edits and player position. Saves with a different seed or unsupported format version are ignored.
 

@@ -1,15 +1,15 @@
 import { BLOCK, blocks, type BlockRegistry } from "./blocks";
-import { WORLD_CONFIG } from "./config";
+import { SAVE_VERSION, WORLD_CONFIG } from "./config";
 import { TerrainGenerator, type TerrainChunk } from "./terrain/generator";
 import { TerrainCollision } from "./terrain/collision";
 import type { BlockAccess, BlockId, Vec3 } from "./types";
 
 export type SavedEdit = readonly [number, number, number, BlockId];
 export interface WorldSave {
-  version: 1;
+  version: typeof SAVE_VERSION;
   seed: number;
   edits: SavedEdit[];
-  player?: Vec3 & { yaw: number; pitch: number };
+  player?: Vec3 & { yaw: number; pitch: number; flying?: boolean; selected?: number };
 }
 
 export const chunkKey = (x: number, z: number) => `${x},${z}`;
@@ -105,11 +105,11 @@ export class VoxelWorld implements BlockAccess {
   }
 
   serialize(player?: WorldSave["player"]): WorldSave {
-    return { version: 1, seed: this.generator.seed, edits: [...this.edits.values()].flatMap((chunk) => [...chunk.values()]), player };
+    return { version: SAVE_VERSION, seed: this.generator.seed, edits: [...this.edits.values()].flatMap((chunk) => [...chunk.values()]), player };
   }
 
   restore(value: unknown): WorldSave["player"] {
-    if (!value || typeof value !== "object" || !("version" in value) || value.version !== 1 || !("seed" in value) || value.seed !== this.generator.seed || !("edits" in value) || !Array.isArray(value.edits)) return;
+    if (!value || typeof value !== "object" || !("version" in value) || value.version !== SAVE_VERSION || !("seed" in value) || value.seed !== this.generator.seed || !("edits" in value) || !Array.isArray(value.edits)) return;
     for (const row of value.edits) {
       if (!Array.isArray(row) || row.length !== 4 || !row.every(Number.isSafeInteger)) continue;
       const [x, y, z, id] = row as [number, number, number, number];

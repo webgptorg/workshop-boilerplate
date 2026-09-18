@@ -1,4 +1,4 @@
-[ ]
+[x]
 
 Implement flying mode in the game.
 

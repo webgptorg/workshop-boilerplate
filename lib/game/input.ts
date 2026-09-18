@@ -13,7 +13,9 @@ export class GameInput {
   yaw = 0;
   pitch = 0.12;
   jumpRequested = false;
+  flyingToggleRequested = false;
   private readonly abort = new AbortController();
+  private lastSpaceTap = -Infinity;
   private dragging = false;
   private dragDistance = 0;
   private pointerX = 0;
@@ -36,13 +38,29 @@ export class GameInput {
     }, { passive: false, signal });
   }
 
-  private clear = () => { this.keys.clear(); this.dragging = false; this.jumpRequested = false; };
+  private clear = () => {
+    this.keys.clear();
+    this.dragging = false;
+    this.jumpRequested = false;
+    this.flyingToggleRequested = false;
+    this.lastSpaceTap = -Infinity;
+  };
 
   private keyDown = (event: KeyboardEvent) => {
     if (event.target instanceof HTMLElement && (event.target.closest("[role=toolbar]") || /INPUT|TEXTAREA|SELECT/.test(event.target.tagName))) return;
     const handled = ["KeyW", "KeyA", "KeyS", "KeyD", "Space", "ArrowUp", "ArrowDown", "ArrowLeft", "ArrowRight", "ShiftLeft", "ShiftRight"];
     if (handled.includes(event.code)) { event.preventDefault(); this.keys.add(event.code); }
-    if (event.code === "Space" && !event.repeat) this.jumpRequested = true;
+    if (event.code === "Space" && !event.repeat) {
+      const now = performance.now();
+      if (now - this.lastSpaceTap <= 280) {
+        this.flyingToggleRequested = true;
+        this.jumpRequested = false;
+        this.lastSpaceTap = -Infinity;
+      } else {
+        this.jumpRequested = true;
+        this.lastSpaceTap = now;
+      }
+    }
     if (/^Digit[1-9]$/.test(event.code)) this.callbacks.select(Number(event.code.slice(-1)) - 1);
   };
 

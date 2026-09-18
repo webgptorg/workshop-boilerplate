@@ -1,3 +1,5 @@
+export const SAVE_VERSION = 3;
+
 export const WORLD_CONFIG = {
   seed: 73621,
   chunkSize: 16,
@@ -7,7 +9,6 @@ export const WORLD_CONFIG = {
   renderDistance: 10,
   unloadDistance: 13,
   reach: 7,
-  storageKey: "voxel-garden:world:v2",
 } as const;
 
 export const PLAYER_CONFIG = {

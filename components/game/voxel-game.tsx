@@ -1,15 +1,19 @@
 "use client";
 
+import Link from "next/link";
+import { ArrowLeft, Compass } from "lucide-react";
+import { loadWorld, type SavedWorld } from "@/lib/game/saves";
 import { useEffect, useRef, useState } from "react";
 import type { VoxelGame as Game } from "@/lib/game/game";
 import { MaterialDock } from "./material-dock";
 
-export function VoxelGame() {
+export function VoxelGame({ savedWorld }: { savedWorld: SavedWorld }) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const gameRef = useRef<Game | null>(null);
   const [selected, setSelected] = useState(0);
   const [ready, setReady] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [saveError, setSaveError] = useState<string | null>(null);
   const [attempt, setAttempt] = useState(0);
 
   useEffect(() => {
@@ -19,7 +23,14 @@ export function VoxelGame() {
     import("@/lib/game/game").then(({ VoxelGame: GameRuntime }) => {
       if (cancelled) return;
       try {
+        const latestSave = loadWorld(localStorage, savedWorld.id);
+        if (!latestSave) {
+          setError("This world has been deleted. Return to Worlds to choose another.");
+          return;
+        }
         gameRef.current = new GameRuntime(canvas, {
+          savedWorld: latestSave,
+          onSaveError: (message) => { if (!cancelled) setSaveError(message); },
           onReady: () => { if (!cancelled) setReady(true); },
           onSelection: (index) => { if (!cancelled) setSelected(index); },
           onError: (message) => { if (!cancelled) setError(message); },
@@ -33,10 +44,15 @@ export function VoxelGame() {
       if (!cancelled) setError("The world could not load. Please try again.");
     });
     return () => { cancelled = true; gameRef.current?.dispose(); gameRef.current = null; };
-  }, [attempt]);
+  }, [attempt, savedWorld]);
 
   return (
     <main className="voxel-game" data-ready={ready} aria-label="Voxel sandbox">
+      <nav className="world-navigation" aria-label="World navigation">
+        <Link href="/" className="world-menu-back" aria-label="Back to world selection"><ArrowLeft size={17} aria-hidden="true" /><span>Worlds</span></Link>
+        <span className="world-current-name"><Compass size={15} aria-hidden="true" />{savedWorld.name}</span>
+      </nav>
+      {saveError && <p className="world-save-error" role="alert">{saveError}</p>}
       <canvas
         ref={canvasRef}
         className="world-canvas"
@@ -46,7 +62,8 @@ export function VoxelGame() {
       />
       <p id="game-instructions" className="sr-only">
         Click the world to capture the mouse. WASD to move, mouse or arrow keys to look,
-        space to jump. Left click places a block, right click removes one. Press Escape
+        space to jump; double-tap space to toggle free flying, with space and shift moving up and down.
+        Left click places a block, right click removes one. Press Escape
         to release the mouse. Choose a material below, with keys 1 to 6, or the scroll wheel.
       </p>
       {!error && <div className="crosshair" aria-hidden="true"><span /><span /></div>}

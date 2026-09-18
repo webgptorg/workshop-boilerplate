@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 import { BLOCK, blocks, BlockRegistry } from "../lib/game/blocks";
-import { WORLD_CONFIG } from "../lib/game/config";
+import { SAVE_VERSION, WORLD_CONFIG } from "../lib/game/config";
 import { CharacterBody } from "../lib/game/physics";
 import { raycastVoxels } from "../lib/game/raycast";
 import { StateMachine } from "../lib/game/state-machine";
@@ -76,7 +76,7 @@ test("invalid saves and unregistered block IDs cannot corrupt the world", () => 
   assert.equal(world.setBlock(0, 12, 0, 255), false);
   assert.equal(world.setBlock(0.5, 12, 0, BLOCK.wood), false);
   assert.equal(world.restore({ version: 100, seed: WORLD_CONFIG.seed, edits: [] }), undefined);
-  world.restore({ version: 1, seed: WORLD_CONFIG.seed, edits: [[0, 12, 0, 255], [1, "bad", 2, 5], null] });
+  world.restore({ version: SAVE_VERSION, seed: WORLD_CONFIG.seed, edits: [[0, 12, 0, 255], [1, "bad", 2, 5], null] });
   assert.equal(world.serialize().edits.length, 0);
   const registry = new BlockRegistry([]);
   const grass = blocks.get(BLOCK.grass);
