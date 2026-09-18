@@ -8,6 +8,8 @@ import { CreateLineSystem } from "@babylonjs/core/Meshes/Builders/linesBuilder";
 import type { LinesMesh } from "@babylonjs/core/Meshes/linesMesh";
 import { BLOCK, blocks } from "./blocks";
 import { WORLD_CONFIG, PLAYER_CONFIG } from "./config";
+import { saveWorld, type SavedWorld } from "./saves";
+import { TerrainGenerator } from "./terrain/generator";
 import { VoxelWorld } from "./world";
 import { CharacterBody } from "./physics";
 import { GameInput } from "./input";
@@ -22,6 +24,8 @@ import type { StandardMaterial } from "@babylonjs/core/Materials/standardMateria
 import type { ShaderMaterial } from "@babylonjs/core/Materials/shaderMaterial";
 
 export interface GameOptions {
+  savedWorld: SavedWorld;
+  onSaveError(message: string | null): void;
   onReady(): void;
   onSelection(index: number): void;
   onError(message: string): void;
@@ -31,7 +35,7 @@ export interface GameOptions {
 export class VoxelGame {
   readonly engine: Engine;
   readonly scene: Scene;
-  readonly world = new VoxelWorld();
+  readonly world: VoxelWorld;
   readonly camera: FreeCamera;
   readonly body: CharacterBody;
   readonly input: GameInput;
@@ -59,11 +63,10 @@ export class VoxelGame {
     this.scene.skipPointerMovePicking = true;
     this.scene.skipPointerDownPicking = true;
     this.scene.skipPointerUpPicking = true;
-    let restored;
-    try {
-      const saved = localStorage.getItem(WORLD_CONFIG.storageKey);
-      if (saved) restored = this.world.restore(JSON.parse(saved));
-    } catch { /* Storage may be unavailable; the sandbox still works in memory. */ }
+    this.world = new VoxelWorld(new TerrainGenerator(options.savedWorld.state.seed));
+    const restored = this.world.restore(options.savedWorld.state);
+    this.flying = restored?.flying === true;
+    if (typeof restored?.selected === "number" && Number.isInteger(restored.selected)) this.select(restored.selected);
     const spawn = restored ?? findSpawn(this.world);
     this.body = new CharacterBody(this.world, spawn);
     // Recover safely if a saved player was inside a subsequently edited block.
@@ -202,11 +205,13 @@ export class VoxelGame {
     // Save position periodically too, even when no blocks changed.
     if (!this.ready && this.lastSavedRevision === this.world.revision) return;
     try {
-      localStorage.setItem(WORLD_CONFIG.storageKey, JSON.stringify(this.world.serialize({
+      saveWorld(localStorage, this.options.savedWorld, this.world.serialize({
         ...this.body.position, yaw: this.input.yaw, pitch: this.input.pitch,
-      })));
+        flying: this.flying, selected: this.selected,
+      }));
+      this.options.onSaveError(null);
       this.lastSavedRevision = this.world.revision;
-    } catch { /* Quota/private mode failures do not interrupt play. */ }
+    } catch { this.options.onSaveError("Changes could not be saved. Browser storage may be full, unavailable, or this world was deleted."); }
   };
 
   dispose() {

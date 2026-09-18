@@ -1,5 +1,5 @@
-import { VoxelGame } from "@/components/game/voxel-game";
+import { WorldWelcome } from "@/components/game/world-welcome";
 
 export default function Home() {
-  return <VoxelGame />;
+  return <WorldWelcome />;
 }

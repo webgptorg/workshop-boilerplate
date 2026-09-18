@@ -1,4 +1,4 @@
-[ ]
+[x]
 
 The game should, contain multiple worlds.
 

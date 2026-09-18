@@ -498,3 +498,23 @@ h3,
   .material-slot, .material-swatch, .world-canvas, .crosshair { transition: none; }
   .world-loading span { animation: none; }
 }
+
+.world-welcome { width: min(840px, calc(100% - 40px)); margin: 0 auto; padding: 70px 0 40px; }
+.world-welcome h1 { font-size: clamp(2.2rem, 6vw, 3.8rem); margin-bottom: 16px; }
+.world-eyebrow { color: var(--pb-green-dark); font-weight: 700; letter-spacing: .12em; text-transform: uppercase; }
+.world-panel { margin-top: 28px; padding: 28px; background: var(--pb-white); border: 1px solid var(--pb-border); border-radius: 20px; }
+.world-panel h2 { font-size: 1.3rem; }
+.world-panel label { display: block; margin-bottom: 8px; }
+.world-create-row, .world-actions { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
+.world-create-row input { flex: 1; min-width: 140px; padding: 13px 16px; border: 1px solid var(--pb-border); border-radius: 12px; color: var(--pb-ink); background: var(--pb-light); }
+.world-list { list-style: none; padding: 0; margin: 0; }
+.world-list li { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 16px; padding: 20px 0; border-top: 1px solid var(--pb-border); }
+.world-list h3 { margin-bottom: 6px; overflow-wrap: anywhere; }
+.world-details { flex: 1; min-width: 180px; }
+.world-list p, .world-storage-note { color: var(--pb-muted); font-size: .875rem; margin-bottom: 0; }
+.world-storage-note { margin-top: 24px; }
+.world-navigation { position: absolute; z-index: 5; top: 16px; left: 16px; right: 16px; display: flex; align-items: center; gap: 16px; pointer-events: none; }
+.world-navigation a, .world-navigation span { background: var(--pb-white); padding: 10px 16px; border-radius: 12px; }
+.world-navigation a { pointer-events: auto; font-weight: 600; }
+.world-navigation span { max-width: 60%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.world-save-error { position: absolute; z-index: 6; top: 68px; left: 16px; right: 16px; padding: 12px; border-radius: 12px; background: var(--pb-white); color: var(--pb-ink); }
