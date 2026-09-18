@@ -12,6 +12,7 @@ import type { Camera } from "@babylonjs/core/Cameras/camera";
 import { WORLD_CONFIG } from "../config";
 import { hash } from "../terrain/noise";
 import type { GameSystem } from "../types";
+import { PIXEL_GRAIN_GLSL, ProceduralSurfacePlugin } from "./procedural-textures";
 import { GeometryBuffer } from "./geometry";
 
 const SHADOW_MAP_SIZE = 2048;
@@ -70,6 +71,7 @@ export class Atmosphere implements GameSystem {
       fragmentSource: `
         precision highp float;
         varying vec3 vDirection;
+        ${PIXEL_GRAIN_GLSL}
         void main() {
           vec3 direction = normalize(vDirection);
           float height = smoothstep(-0.05, 0.85, direction.y);
@@ -79,7 +81,7 @@ export class Atmosphere implements GameSystem {
           float sun = max(0.0, dot(direction, normalize(vec3(-0.6, 1.0, -0.45))));
           sky += vec3(0.12, 0.095, 0.045) * pow(sun, 10.0);
           sky = mix(sky, vec3(1.0, 0.96, 0.78), smoothstep(0.9985, 0.9992, sun));
-          gl_FragColor = vec4(sky, 1.0);
+          gl_FragColor = vec4(sky + vec3(pixelGrain() * 0.012), 1.0);
         }
       `,
     }, { attributes: ["position"], uniforms: ["worldViewProjection"] });
@@ -94,6 +96,7 @@ export class Atmosphere implements GameSystem {
     this.cloudMaterial.emissiveColor = new Color3(0.20, 0.21, 0.20);
     this.cloudMaterial.specularColor = Color3.Black();
     this.cloudMaterial.disableLighting = false;
+    new ProceduralSurfacePlugin(this.cloudMaterial, 0.10);
     for (let i = 0; i < 22; i++) {
       const geometry = new GeometryBuffer();
       const seed = WORLD_CONFIG.seed + i * 47;
