@@ -1,4 +1,4 @@
-[x]
+[ ]
 
 Implement smooth terrain of the game.
 
