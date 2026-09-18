@@ -1,6 +1,7 @@
 import { BLOCK, blocks, type BlockRegistry } from "./blocks";
 import { WORLD_CONFIG } from "./config";
 import { TerrainGenerator, type TerrainChunk } from "./terrain/generator";
+import { TerrainCollision } from "./terrain/collision";
 import type { BlockAccess, BlockId, Vec3 } from "./types";
 
 export type SavedEdit = readonly [number, number, number, BlockId];
@@ -20,6 +21,7 @@ export class VoxelWorld implements BlockAccess {
   readonly dirty = new Set<string>();
   private readonly edits = new Map<string, Map<string, SavedEdit>>();
   revision = 0;
+  private readonly terrainCollision = new TerrainCollision(this);
 
   constructor(
     readonly generator = new TerrainGenerator(),
@@ -49,6 +51,18 @@ export class VoxelWorld implements BlockAccess {
     return this.registry.get(this.getBlock(x, y, z))?.solid ?? false;
   }
 
+  isTerrain(x: number, y: number, z: number) {
+    return this.registry.get(this.getBlock(x, y, z))?.terrain === true;
+  }
+
+  getTerrainHeight(x: number, z: number, minY: number, maxY: number) {
+    return this.terrainCollision.heightAt(x, z, minY, maxY);
+  }
+
+  isInsideTerrain(x: number, y: number, z: number) {
+    return this.terrainCollision.contains(x, y, z);
+  }
+
   setBlock(x: number, y: number, z: number, id: BlockId) {
     if (![x, y, z].every(Number.isSafeInteger) || (id !== BLOCK.air && !this.registry.get(id))) return false;
     if (this.getBlock(x, y, z) === id) return false;
@@ -64,12 +78,12 @@ export class VoxelWorld implements BlockAccess {
     const edit: SavedEdit = [x, y, z, id];
     chunkEdits.set(blockKey(x, y, z), edit);
     this.applyToChunk(this.getChunk(cx, cz), edit);
-    // Interior edits affect one mesh; boundary edits also affect neighboring faces/AO.
+    // Relaxed terrain vertices sample a two-block halo, including diagonal chunks.
     this.dirty.add(key);
     const localX = x - cx * size;
     const localZ = z - cz * size;
-    const offsetsX = localX === 0 ? [0, -1] : localX === size - 1 ? [0, 1] : [0];
-    const offsetsZ = localZ === 0 ? [0, -1] : localZ === size - 1 ? [0, 1] : [0];
+    const offsetsX = localX < 2 ? [0, -1] : localX >= size - 2 ? [0, 1] : [0];
+    const offsetsZ = localZ < 2 ? [0, -1] : localZ >= size - 2 ? [0, 1] : [0];
     for (const dx of offsetsX) {
       for (const dz of offsetsZ) this.dirty.add(chunkKey(cx + dx, cz + dz));
     }
@@ -106,6 +120,7 @@ export class VoxelWorld implements BlockAccess {
       chunkEdits.set(blockKey(x, y, z), [x, y, z, id]);
     }
     this.chunks.clear();
+    this.revision++;
     if ("player" in value && value.player && typeof value.player === "object") {
       const player = value.player;
       if ("x" in player && "y" in player && "z" in player && "yaw" in player && "pitch" in player && [player.x, player.y, player.z, player.yaw, player.pitch].every((n) => typeof n === "number" && Number.isFinite(n))) {

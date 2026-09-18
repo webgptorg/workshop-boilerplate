@@ -45,7 +45,6 @@ export class VoxelGame {
   private readonly abort = new AbortController();
   private selected = 0;
   private hit: VoxelHit | null = null;
-  private time = 0;
   private saveTime = 0;
   private ready = false;
   private disposed = false;
@@ -53,7 +52,7 @@ export class VoxelGame {
 
   constructor(readonly canvas: HTMLCanvasElement, readonly options: GameOptions) {
     this.engine = new Engine(canvas, true, { stencil: true, preserveDrawingBuffer: false, powerPreference: "high-performance" }, false);
-    this.engine.setHardwareScalingLevel(1 / Math.min(window.devicePixelRatio || 1, 1.75));
+    this.engine.setHardwareScalingLevel(1 / (window.devicePixelRatio || 1));
     this.scene = new Scene(this.engine);
     this.scene.skipPointerMovePicking = true;
     this.scene.skipPointerDownPicking = true;
@@ -96,7 +95,10 @@ export class VoxelGame {
     this.target.scaling.setAll(1.006);
     this.target.isPickable = false;
     this.target.setEnabled(false);
-    this.resize = new ResizeObserver(() => this.engine.resize());
+    this.resize = new ResizeObserver(() => {
+      this.engine.setHardwareScalingLevel(1 / (window.devicePixelRatio || 1));
+      this.engine.resize();
+    });
     this.resize.observe(canvas);
     const signal = this.abort.signal;
     window.addEventListener("pagehide", this.save, { signal });
@@ -142,7 +144,6 @@ export class VoxelGame {
   private frame = () => {
     if (this.disposed || document.hidden) return;
     const delta = Math.min(this.engine.getDeltaTime() / 1000, 0.05);
-    this.time += delta;
     this.input.update(delta);
     const keys = this.input.keys;
     let x = Number(keys.has("KeyD")) - Number(keys.has("KeyA"));
@@ -166,7 +167,6 @@ export class VoxelGame {
     this.scene.fogStart = underwater ? 0 : this.atmosphere.fogRange.x;
     this.scene.fogEnd = underwater ? 23 : this.atmosphere.fogRange.y;
     this.scene.fogColor = underwater ? new Color3(0.21, 0.47, 0.48) : this.atmosphere.fogColor;
-    this.waterMaterial.setFloat("time", this.time);
     this.waterMaterial.setVector3("eye", this.camera.position);
     this.waterMaterial.setColor3("fogColor", this.scene.fogColor);
     this.waterMaterial.setVector2("fogRange", this.atmosphere.fogRange);

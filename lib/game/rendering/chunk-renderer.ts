@@ -74,14 +74,14 @@ export class ChunkRenderer {
     }
     this.meshes.set(key, result);
     const [centerX, centerZ] = this.center.split(",").map(Number);
-    if (result.solid && Math.hypot(cx - centerX, cz - centerZ) < 4) this.shadows.addShadowCaster(result.solid);
+    if (result.solid && Math.hypot(cx - centerX, cz - centerZ) < 6) this.shadows.addShadowCaster(result.solid);
   }
 
   private refreshShadows(cx: number, cz: number) {
     for (const chunk of this.meshes.values()) {
       if (!chunk.solid) continue;
       this.shadows.removeShadowCaster(chunk.solid);
-      if (Math.hypot(chunk.cx - cx, chunk.cz - cz) < 4) this.shadows.addShadowCaster(chunk.solid);
+      if (Math.hypot(chunk.cx - cx, chunk.cz - cz) < 6) this.shadows.addShadowCaster(chunk.solid);
     }
   }
 

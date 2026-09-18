@@ -44,3 +44,5 @@ npm run build
 `check` runs ESLint and TypeScript. For simulation changes, add focused regression coverage in `tests/game.test.ts`. For input or rendering changes, also check the browser experience: movement, building/removal, dock keyboard navigation, chunk boundaries, and save/reload behavior as relevant. Report any failed checks or unverified behavior.
 
 If you introduce a direct import from another Promptbook package, declare that package explicitly in `dependencies` instead of relying on a transitive dependency.
+
+
