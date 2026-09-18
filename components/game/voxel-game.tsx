@@ -46,7 +46,8 @@ export function VoxelGame() {
       />
       <p id="game-instructions" className="sr-only">
         Click the world to capture the mouse. WASD to move, mouse or arrow keys to look,
-        space to jump. Left click places a block, right click removes one. Press Escape
+        space to jump; double-tap space to toggle free flying, with space and shift moving up and down.
+        Left click places a block, right click removes one. Press Escape
         to release the mouse. Choose a material below, with keys 1 to 6, or the scroll wheel.
       </p>
       {!error && <div className="crosshair" aria-hidden="true"><span /><span /></div>}

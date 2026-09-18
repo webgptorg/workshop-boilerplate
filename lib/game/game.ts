@@ -49,6 +49,7 @@ export class VoxelGame {
   private saveTime = 0;
   private ready = false;
   private disposed = false;
+  private flying = false;
   private lastSavedRevision = -1;
 
   constructor(readonly canvas: HTMLCanvasElement, readonly options: GameOptions) {
@@ -145,17 +146,37 @@ export class VoxelGame {
     this.time += delta;
     this.input.update(delta);
     const keys = this.input.keys;
+    if (this.input.flyingToggleRequested) {
+      this.flying = !this.flying;
+      this.input.flyingToggleRequested = false;
+      this.input.jumpRequested = false;
+      this.body.velocityY = 0;
+      this.body.grounded = false;
+    }
     let x = Number(keys.has("KeyD")) - Number(keys.has("KeyA"));
     let z = Number(keys.has("KeyW")) - Number(keys.has("KeyS"));
     const length = Math.hypot(x, z);
-    const speed = this.body.inWater ? 3 : keys.has("ShiftLeft") || keys.has("ShiftRight") ? PLAYER_CONFIG.sprintSpeed : PLAYER_CONFIG.speed;
+    const speed = this.flying
+      ? PLAYER_CONFIG.sprintSpeed
+      : this.body.inWater ? 3 : keys.has("ShiftLeft") || keys.has("ShiftRight") ? PLAYER_CONFIG.sprintSpeed : PLAYER_CONFIG.speed;
     if (length) { x = x / length * speed; z = z / length * speed; }
     const sin = Math.sin(this.input.yaw);
     const cos = Math.cos(this.input.yaw);
-    if (this.input.jumpRequested) { this.body.jump(PLAYER_CONFIG.jumpSpeed); this.input.jumpRequested = false; }
-    this.body.update(delta, x * cos + z * sin, z * cos - x * sin, keys.has("Space"));
+    if (this.flying) {
+      const vertical = (Number(keys.has("Space")) - Number(keys.has("ShiftLeft") || keys.has("ShiftRight"))) * speed;
+      this.body.fly(delta, x * cos + z * sin, vertical, z * cos - x * sin);
+    } else {
+      if (this.input.jumpRequested) { this.body.jump(PLAYER_CONFIG.jumpSpeed); this.input.jumpRequested = false; }
+      this.body.update(delta, x * cos + z * sin, z * cos - x * sin, keys.has("Space"));
+    }
     const p = this.body.position;
-    this.camera.position.set(p.x, p.y + PLAYER_CONFIG.eyeHeight - this.body.stepOffset, p.z);
+    const cameraY = p.y + PLAYER_CONFIG.eyeHeight - this.body.stepOffset;
+    if (this.flying) {
+      const follow = 1 - Math.exp(-18 * delta);
+      this.camera.position = Vector3.Lerp(this.camera.position, new Vector3(p.x, cameraY, p.z), follow);
+    } else {
+      this.camera.position.set(p.x, cameraY, p.z);
+    }
     this.camera.rotation.set(this.input.pitch, this.input.yaw, 0);
     this.camera.getViewMatrix(true);
     this.renderer.update(p, this.ready ? 6 : 18);
