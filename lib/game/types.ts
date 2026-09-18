@@ -26,6 +26,9 @@ export interface BlockDefinition {
 export interface BlockAccess {
   getBlock(x: number, y: number, z: number): BlockId;
   isSolid(x: number, y: number, z: number): boolean;
+  isTerrain?(x: number, y: number, z: number): boolean;
+  isInsideTerrain?(x: number, y: number, z: number): boolean;
+  getTerrainHeight?(x: number, z: number, minY: number, maxY: number): number | undefined;
 }
 
 export interface GameSystem {

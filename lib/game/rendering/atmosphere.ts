@@ -14,6 +14,12 @@ import { hash } from "../terrain/noise";
 import type { GameSystem } from "../types";
 import { GeometryBuffer } from "./geometry";
 
+const SHADOW_MAP_SIZE = 2048;
+const SHADOW_SPAN = 112;
+const SUN_DIRECTION = new Vector3(0.6, -1, 0.45).normalize();
+const SHADOW_RIGHT = Vector3.Cross(Vector3.Up(), SUN_DIRECTION).normalize();
+const SHADOW_UP = Vector3.Cross(SUN_DIRECTION, SHADOW_RIGHT).normalize();
+
 export class Atmosphere implements GameSystem {
   readonly shadows: ShadowGenerator;
   readonly fogColor = new Color3(0.77, 0.84, 0.82);
@@ -32,25 +38,27 @@ export class Atmosphere implements GameSystem {
     scene.fogStart = this.fogRange.x;
     scene.fogEnd = this.fogRange.y;
     scene.fogColor = this.fogColor;
-    scene.ambientColor = new Color3(0.12, 0.13, 0.12);
-    scene.imageProcessingConfiguration.exposure = 1;
-    scene.imageProcessingConfiguration.contrast = 1.06;
+    scene.ambientColor = new Color3(0.055, 0.065, 0.075);
+    scene.imageProcessingConfiguration.exposure = 0.98;
+    scene.imageProcessingConfiguration.contrast = 1.04;
     this.ambient = new HemisphericLight("sky-light", new Vector3(0, 1, 0), scene);
-    this.ambient.intensity = 0.76;
+    this.ambient.intensity = 0.53;
     this.ambient.diffuse = new Color3(0.93, 0.97, 1);
     this.ambient.groundColor = new Color3(0.52, 0.49, 0.38);
-    this.sun = new DirectionalLight("sun", new Vector3(0.6, -1, 0.45).normalize(), scene);
+    this.sun = new DirectionalLight("sun", SUN_DIRECTION.clone(), scene);
     this.sun.diffuse = new Color3(1, 0.94, 0.78);
-    this.sun.intensity = 1.05;
-    this.sun.shadowFrustumSize = 100;
+    this.sun.intensity = 1.12;
+    this.sun.shadowFrustumSize = SHADOW_SPAN;
     this.sun.shadowMinZ = 1;
     this.sun.shadowMaxZ = 200;
-    this.shadows = new ShadowGenerator(2048, this.sun);
-    this.shadows.usePercentageCloserFiltering = true;
+    this.shadows = new ShadowGenerator(SHADOW_MAP_SIZE, this.sun);
+    this.shadows.useContactHardeningShadow = true;
+    this.shadows.contactHardeningLightSizeUVRatio = 0.025;
     this.shadows.filteringQuality = ShadowGenerator.QUALITY_MEDIUM;
-    this.shadows.bias = 0.0007;
-    this.shadows.normalBias = 0.04;
-    this.shadows.setDarkness(0.23);
+    this.shadows.bias = 0.001;
+    this.shadows.normalBias = 0.12;
+    this.shadows.frustumEdgeFalloff = 0.15;
+    this.shadows.setDarkness(0.2);
     this.skyMaterial = new ShaderMaterial("sky-gradient", scene, {
       vertexSource: `
         precision highp float;
@@ -107,7 +115,16 @@ export class Atmosphere implements GameSystem {
     this.time += delta;
     const p = this.camera.position;
     this.sky.position.copyFrom(p);
-    this.sun.position.set(p.x - 48, p.y + 80, p.z - 36);
+    // Snap in light space to keep the shadow texels stable as the camera walks.
+    const texel = SHADOW_SPAN / SHADOW_MAP_SIZE;
+    const right = Math.round(Vector3.Dot(p, SHADOW_RIGHT) / texel) * texel;
+    const up = Math.round(Vector3.Dot(p, SHADOW_UP) / texel) * texel;
+    const depth = Vector3.Dot(p, SUN_DIRECTION) - 100;
+    this.sun.position.set(
+      SHADOW_RIGHT.x * right + SHADOW_UP.x * up + SUN_DIRECTION.x * depth,
+      SHADOW_RIGHT.y * right + SHADOW_UP.y * up + SUN_DIRECTION.y * depth,
+      SHADOW_RIGHT.z * right + SHADOW_UP.z * up + SUN_DIRECTION.z * depth,
+    );
     for (const cloud of this.clouds) {
       cloud.mesh.position.x = p.x + ((cloud.x + this.time * 0.2 - p.x + 600) % 400 + 400) % 400 - 200;
       cloud.mesh.position.z = p.z + ((cloud.z - p.z + 600) % 400 + 400) % 400 - 200;

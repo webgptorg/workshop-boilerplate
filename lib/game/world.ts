@@ -1,6 +1,7 @@
 import { BLOCK, blocks, type BlockRegistry } from "./blocks";
 import { WORLD_CONFIG } from "./config";
 import { TerrainGenerator, type TerrainChunk } from "./terrain/generator";
+import { TerrainCollision } from "./terrain/collision";
 import type { BlockAccess, BlockId, Vec3 } from "./types";
 
 export type SavedEdit = readonly [number, number, number, BlockId];
@@ -20,6 +21,7 @@ export class VoxelWorld implements BlockAccess {
   readonly dirty = new Set<string>();
   private readonly edits = new Map<string, Map<string, SavedEdit>>();
   revision = 0;
+  private readonly terrainCollision = new TerrainCollision(this);
 
   constructor(
     readonly generator = new TerrainGenerator(),
@@ -47,6 +49,18 @@ export class VoxelWorld implements BlockAccess {
 
   isSolid(x: number, y: number, z: number) {
     return this.registry.get(this.getBlock(x, y, z))?.solid ?? false;
+  }
+
+  isTerrain(x: number, y: number, z: number) {
+    return this.registry.get(this.getBlock(x, y, z))?.terrain === true;
+  }
+
+  getTerrainHeight(x: number, z: number, minY: number, maxY: number) {
+    return this.terrainCollision.heightAt(x, z, minY, maxY);
+  }
+
+  isInsideTerrain(x: number, y: number, z: number) {
+    return this.terrainCollision.contains(x, y, z);
   }
 
   setBlock(x: number, y: number, z: number, id: BlockId) {
@@ -106,6 +120,7 @@ export class VoxelWorld implements BlockAccess {
       chunkEdits.set(blockKey(x, y, z), [x, y, z, id]);
     }
     this.chunks.clear();
+    this.revision++;
     if ("player" in value && value.player && typeof value.player === "object") {
       const player = value.player;
       if ("x" in player && "y" in player && "z" in player && "yaw" in player && "pitch" in player && [player.x, player.y, player.z, player.yaw, player.pitch].every((n) => typeof n === "number" && Number.isFinite(n))) {

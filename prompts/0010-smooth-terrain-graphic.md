@@ -9,7 +9,7 @@ The transitions should be smooth, the hills should be smooth, the coastline shou
 
 ---
 
-[ ]
+[x]
 
 Enhance the smoothness of the terrain
 
