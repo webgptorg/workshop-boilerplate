@@ -1,4 +1,4 @@
-[ ]
+[x]
 
 Create a `AGENTS.md` and⡀`README.md` for documentation and guidelines.
 
