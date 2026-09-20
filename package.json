@@ -28,6 +28,7 @@
     "@types/react-dom": "latest",
     "eslint": "latest",
     "eslint-config-next": "latest",
+    "ptbk": "^0.114.0-40",
     "tsx": "^4.23.13",
     "typescript": "latest"
   }
