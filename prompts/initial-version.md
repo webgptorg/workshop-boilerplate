@@ -5,11 +5,12 @@ Implement the first version of the app "Společný stůl"
     - Analyze the business and all other subdocuments linked in `docs/`
 - You are starting from the boilerplate project. Just discard the things which are in the project and implement the first version of the app. 
 
-
 ## Branding
 
 This is how logo, fonts and colors should look like:
 ![Logo, fonts and colors](image.png)
+
+- Create a branding manual including logo, fonts, and color scheme, examples,... at `docs/branding`
 
 
 ## Meals
@@ -27,7 +28,7 @@ The app should be designed for all varieties of users: pupils, school restaurant
 
 ## Users
 
-- There is no database, but prepare three mocked users:
+- Prepare three mocked users:
     1) the pupil
     2) the restaurant staff
     3) the parent
@@ -52,7 +53,7 @@ The parent role should have access to view their child's weekly meal plan, provi
 
 ## Data
 
-- Do not implement the database. The data should be just stored in the local storage / indexed DB for now. 
+- Use the SQLite database.
 
 
 ## Automated checks
@@ -75,6 +76,14 @@ Týdenní jídelníček.
 Pestrý týden pro děti. Méně starostí pro vás.
 ```
 
+**For example do not do this:**
+
+```
+MOJE STRAVOVÁNÍ
+Týdenní jídelníček
+Prohlédni si nabídku a vyber si, na co máš chuť.
+```
+
 **But do this:**
 
 ```
@@ -83,6 +92,12 @@ Týdenní jídelníček.
 
 
 Do not write texts like "Návrh máte ve svých rukou" in badges
+
+
+RULE
+Nepřidávej automaticky supporting copy, subheadline, lead text ani vysvětlující věty pod nadpisy sekcí. Pokud text nepřináší novou informaci, vůbec ho nevytvářej. Nadpis a samotné UI musí být dostatečně srozumitelné bez generického vysvětlování. Zakázané jsou výplňové formulace typu „Každý X má své místo…“, „Vše přehledně na jednom místě“, „Jednoduše a efektivně…“
+
+Pokud najdeš, smaž je
 
 
 
@@ -109,3 +124,5 @@ RULE
 Do not use abbreviations, for example use `isExpired` instead of `isExp`, `translateMessage` instead of `t`, etc.
 It is fine to use well-known abbreviations, for example `id`, `url`, `html`, etc.
 
+RULE
+The files should be max 300 lines long.
