@@ -1,3 +1,5 @@
+[^]
+
 Replace the mocked users of "Společný stůl" with a real user system
 
 - This builds on the [first version](initial-version.md). Its coding standards still apply.
