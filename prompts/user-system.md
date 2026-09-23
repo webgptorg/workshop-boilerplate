@@ -18,7 +18,8 @@ Replace the mocked users of "Společný stůl" with a real user system
 - **Manager** (vedoucí jídelny): everything staff can do, plus approving idea proposals and managing people.
 - **Staff**: manages meals, reads feedback and ideas.
 - **Parent**: acts only for their linked children.
-- **Pupil**: acts only for themself.
+- **Pupil**: acts only for themself, including submitting ideas.
+- **Anonymous visitor**: sees the weekly menu.
 - One user can have more roles, for example a cook who is also a parent. Replace the role button with a switcher of canteen, role and child.
 - Check all permissions on the server. When a user touches a diner that is not theirs, respond `404`.
 
@@ -27,9 +28,9 @@ Replace the mocked users of "Společný stůl" with a real user system
 The manager must not do work per parent. She does not collect parent emails.
 
 1. Canteen and its first manager are created by a CLI script.
-2. The manager imports diners from CSV once per school year, sees a preview and confirms. Re-import matches by diner number and archives missing diners.
+2. The manager imports diners from the iCanteen CSV export once per school year, sees a preview and confirms. Re-import matches by diner number and archives missing diners. Parents can still read an archived diner for 30 days.
 3. The manager prints pairing letters, one per diner, with a code and a QR code.
-4. The parent registers with the code and the child is linked. One code works for max 2 parents. The manager can regenerate the code and remove a link.
+4. The parent registers with the code and the child is linked. One code works for max 2 parents. The manager can regenerate the code and remove a link with a recorded reason.
 5. The parent can create a username and password for their child.
 6. The manager invites staff by a one-time link.
 
@@ -38,6 +39,7 @@ There is no registration without a code or invitation.
 ## Accounts
 
 - Login by email or pupil username and password.
+- Staff share one kitchen device, so switching between staff accounts on it must be fast.
 - Password reset by email. A pupil is reset by the parent, a parent without email by the manager.
 - My account: name, email, password, sign out other devices, linked children, add child by code, export my data, delete my account.
 - Deleted users are anonymized as "Smazaný uživatel", their ideas and feedback stay for the canteen.
