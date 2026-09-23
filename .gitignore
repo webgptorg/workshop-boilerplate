@@ -15,3 +15,14 @@ data/*.sqlite*
 
 playwright-report/
 test-results/
+
+# Promptbook Coder
+/.promptbook
+.env
+.codex
+.github/copilot/settings.local.json
+.cline
+.claude
+.opencode
+.gemini
+.qwen

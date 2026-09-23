@@ -11,7 +11,12 @@
     "check": "npm run lint && npm run typecheck && npm run test && npm run build && npm run test:browser",
     "test": "tsx --test tests/*.test.ts",
     "test:browser": "playwright test",
-    "admin": "tsx scripts/admin.ts"
+    "admin": "tsx scripts/admin.ts",
+    "coder:generate-boilerplates": "npx ptbk coder generate-boilerplates --count 5*1 --template ./prompts/templates/common.md",
+    "coder:add": "npx ptbk coder add --template ./prompts/templates/common.md",
+    "coder:run": "npx ptbk coder run --harness openai-codex --thinking-level low --agent agents/developer.book --context AGENTS.md --test \"npm run check\" --test-before yes-and-fail",
+    "coder:verify": "npx ptbk coder verify",
+    "test-for-ptbk-coder": "npm test"
   },
   "dependencies": {
     "lucide-react": "0.536.0",
@@ -30,6 +35,7 @@
     "eslint": "latest",
     "eslint-config-next": "latest",
     "prettier": "^3.9.9",
+    "ptbk": "^0.114.0-41",
     "tsx": "^4.23.15",
     "typescript": "latest"
   },
