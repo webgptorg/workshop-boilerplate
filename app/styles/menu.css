@@ -1,0 +1,254 @@
+.meal-card {
+  background: #fff;
+  border: 1px solid #e1e5da;
+  border-radius: 11px;
+  padding: 12px 12px 10px;
+  margin-bottom: 11px;
+  overflow: hidden;
+  box-shadow: 0 2px 3px #39412b02;
+}
+.meal-card.selected {
+  border-color: #9bac8a;
+  background: #f9fcf5;
+}
+.meal-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  min-height: 15px;
+  gap: 2px;
+}
+.meal-slot {
+  color: #909586;
+  font-size: 9px;
+}
+.selected-label {
+  display: inline-flex;
+  align-items: center;
+  color: var(--accent);
+  font-size: 8px;
+  gap: 2px;
+}
+.meal-detail {
+  background: none;
+  border: 0;
+  padding: 0;
+  text-align: left;
+  display: block;
+  width: 100%;
+}
+.meal-art {
+  display: block;
+  width: 100px;
+  height: 96px;
+  margin: 4px auto 3px;
+}
+.meal-art.large {
+  width: 120px;
+  height: 120px;
+  margin: 0;
+  flex-shrink: 0;
+}
+.meal-detail h3 {
+  font-family: var(--font-inter);
+  font-size: 12px;
+  font-weight: 600;
+  line-height: 1.55;
+  min-height: 38px;
+}
+.meal-detail p {
+  color: #8a8f80;
+  font-size: 10px;
+  line-height: 1.55;
+  min-height: 30px;
+  margin-top: 5px;
+}
+.meal-tags {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 3px;
+  font-size: 8px;
+  margin: 11px 0 13px;
+  color: #8a917f;
+}
+.meal-tags span:first-child {
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+  background: #f2f4ec;
+  padding: 4px 5px;
+  border-radius: 4px;
+  color: #748363;
+}
+.meal-actions {
+  display: flex;
+  gap: 5px;
+}
+.meal-choice {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
+  width: 100%;
+  min-height: 30px;
+  padding: 5px;
+  background: #fff;
+  color: #64745b;
+  border: 1px solid #e0e5d7;
+  border-radius: 5px;
+  font-size: 9px;
+  font-weight: 550;
+}
+.meal-choice:hover {
+  background: var(--tint);
+  border-color: #b4c0a7;
+}
+.selected .meal-choice {
+  background: var(--tint);
+  border-color: #d8e1cb;
+  color: var(--accent);
+}
+.rating-button {
+  display: grid;
+  place-items: center;
+  width: 30px;
+  flex-shrink: 0;
+  padding: 0;
+  background: #fff;
+  color: #969e87;
+  border: 1px solid #e0e5d7;
+  border-radius: 5px;
+}
+.rating-button:hover {
+  color: #b48b47;
+  background: #fcf7e9;
+}
+.soup {
+  padding: 9px 10px;
+}
+.soup > span {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  color: #939886;
+  font-size: 9px;
+}
+.soup p {
+  font-size: 10px;
+  margin-top: 6px;
+  color: #707a65;
+  line-height: 1.5;
+}
+.menu-footnote {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  margin-top: 20px;
+  color: #8c9481;
+  font-size: 9px;
+  border-top: 1px solid var(--border);
+  padding: 15px 0 23px;
+}
+.menu-footnote > span {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.bottom-grid {
+  display: grid;
+  grid-template-columns: 1.35fr 1fr;
+  gap: 20px;
+}
+.overview-panel,
+.info-panel {
+  background: #fdfefa;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 20px;
+}
+.section-heading {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 10px;
+}
+.section-heading h2 {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 15px;
+  font-weight: 500;
+}
+.section-heading svg {
+  color: #849472;
+}
+.subtle-label {
+  color: #969b8e;
+  font-size: 9px;
+}
+.variety-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  margin: 19px 0 15px;
+}
+.variety-grid > div {
+  display: grid;
+  grid-template-columns: auto auto;
+  gap: 4px 9px;
+  justify-content: center;
+  border-right: 1px solid var(--border);
+}
+.variety-grid > div:last-child {
+  border: 0;
+}
+.variety-icon {
+  grid-row: span 2;
+  font-size: 22px;
+  align-self: center;
+}
+.variety-grid strong {
+  font-size: 17px;
+  font-weight: 550;
+}
+.variety-grid small {
+  font-size: 9px;
+  color: #848c79;
+}
+.panel-note {
+  color: #919886;
+  font-size: 9px;
+  line-height: 1.7;
+}
+.info-line {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 16px;
+  font-size: 10px;
+}
+.info-line span {
+  color: #858e79;
+}
+.info-line strong {
+  font-weight: 500;
+}
+.info-panel .panel-note {
+  margin-top: 15px;
+}
+.info-panel > p {
+  margin-top: 12px;
+  font-size: 11px;
+  line-height: 1.6;
+}
+footer {
+  display: flex;
+  justify-content: space-between;
+  padding: 26px 0 20px;
+  color: #a0a594;
+  font-size: 9px;
+}
+footer span {
+  display: flex;
+  gap: 5px;
+  align-items: center;
+}
