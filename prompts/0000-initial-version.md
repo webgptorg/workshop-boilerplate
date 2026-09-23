@@ -1,3 +1,5 @@
+[x]
+
 Implement the first version of the app "Společný stůl"
 
 
