@@ -1,4 +1,4 @@
-[^]
+[x]
 
 Replace the mocked users of "Společný stůl" with a real user system
 
