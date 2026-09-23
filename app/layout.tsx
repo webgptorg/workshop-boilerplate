@@ -13,8 +13,11 @@ const outfit = Outfit({
 });
 
 export const metadata: Metadata = {
-  title: "Promptbook Starter",
-  description: "A Promptbook-branded Next.js starter for practical AI products.",
+  title: {
+    default: "Společný stůl",
+    template: "%s · Společný stůl",
+  },
+  description: "Týdenní jídelníček školní jídelny pro žáky, rodiče a jídelnu.",
 };
 
 export default function RootLayout({
@@ -23,7 +26,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en">
+    <html lang="cs">
       <body className={`${inter.variable} ${outfit.variable}`}>{children}</body>
     </html>
   );
