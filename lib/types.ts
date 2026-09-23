@@ -11,6 +11,60 @@ export type Meal = {
   category: string;
   allergens: string;
   ingredients: string;
+  recipeVersionId?: string | null;
+};
+export type RecipeIngredient = {
+  ingredientId: string;
+  amountGrams: number | null;
+  isEstimate: boolean;
+};
+export type RecipeVersion = {
+  id: string;
+  mealId: number;
+  validFrom: string;
+  ingredients: RecipeIngredient[];
+};
+export type BasketGroupId = "meat" | "fish" | "dairy" | "freeFat" | "freeSugar" | "produce" | "potato" | "wholeGrain" | "legume" | "egg";
+export type BasketTarget = {
+  amountGramsPerDinerDay: number | null;
+  minimumPercent: number | null;
+  maximumPercent: number | null;
+  sourcePage: number | null;
+};
+export type BasketRuleSet = {
+  id: string;
+  name: string;
+  validFrom: string;
+  validTo: string | null;
+  sourceDocument: string;
+  measureBasis: "purchased" | "clean";
+  ageCategoryTargets: Partial<Record<string, Partial<Record<BasketGroupId, BasketTarget>>>>;
+  groupLabels: Record<BasketGroupId, string>;
+  ingredientMappings: Record<string, { groupId: BasketGroupId; coefficient: number | null; sourcePage: number | null }>;
+};
+export type BasketMenuItem = {
+  meal: Meal;
+  recipeVersion: RecipeVersion | null;
+  servings: number;
+  isOperatingDay: boolean;
+};
+export type BasketGroupResult = {
+  groupId: BasketGroupId;
+  label: string;
+  amountGrams: number;
+  targetGrams: number | null;
+  minimumGrams: number | null;
+  maximumGrams: number | null;
+  status: "ok" | "under" | "over" | "missingData";
+  isEstimate: boolean;
+  estimateShare: number;
+  contributingMeals: { mealId: number; name: string; amountGrams: number; isEstimate: boolean }[];
+};
+export type BasketPeriodResult = {
+  ruleSetId: string;
+  ruleSetName: string;
+  period: "week" | "month";
+  groups: BasketGroupResult[];
 };
 export type Feedback = {
   id: number;
@@ -39,12 +93,14 @@ export type AppData = {
   oneTimeCode?: string;
   diners: { id: number; name: string; className: string | null; type: "pupil" | "adult"; pupilUsername?: string | null }[];
   meals: Meal[];
+  recipeVersions: RecipeVersion[];
   selections: Record<string, number>;
   feedback: Feedback[];
   ideas: Idea[];
   preferences: string;
   preferencesList: { dinerName: string; text: string }[];
   weeks: string[];
+  operatingDates: string[];
 };
 export const ROLE_LABELS: Record<Role, string> = {
   pupil: "Žák",

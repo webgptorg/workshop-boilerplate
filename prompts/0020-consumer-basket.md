@@ -1,4 +1,4 @@
-[ ]
+[x] by Developer on OpenAI Codex `gpt-6-luna` thinking `low` (ChatGPT account) - Implementation ~$0.3315 7 minutes; Testing a few seconds
 
 Calculate the consumer basket (spotřební koš) of "Společný stůl" from recipes and versioned rules
 
@@ -43,3 +43,4 @@ Calculate the consumer basket (spotřební koš) of "Společný stůl" from reci
 - A group without a rule value or with missing recipe weights shows missing data, never `ok`.
 - Unit tests cover the calculation with fixtures built from the example menus in the methodology documents.
 - `npm run check` and `npm run build` pass.
+

@@ -235,6 +235,34 @@
 .info-panel .panel-note {
   margin-top: 15px;
 }
+.consumer-basket { margin: 0 0 24px; padding: 22px; border: 1px solid var(--border); border-radius: 12px; background: #fff; }
+.basket-heading, .basket-controls, .basket-group-title, .basket-period-switch { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+.basket-heading h2 { font-size: 18px; }
+.basket-heading strong, .basket-heading label, .basket-group small, .basket-values, .basket-contribution, .basket-month-context, .basket-interpretation, .basket-data-note, .basket-comparison { font-size: 11px; }
+.basket-heading label { display: grid; gap: 4px; color: var(--muted); }
+.basket-heading select { max-width: 360px; font: inherit; }
+.basket-controls { margin-top: 16px; }
+.basket-period-switch { justify-content: flex-start; }
+.basket-period-switch button { padding: 6px 11px; border: 1px solid var(--border); border-radius: 6px; background: white; color: var(--ink); cursor: pointer; }
+.basket-period-switch button[aria-pressed="true"] { background: var(--tint); border-color: #b4c0a7; }
+.basket-choice-reading { display: flex; align-items: center; gap: 7px; font-size: 11px; }
+.basket-month-context { margin-top: 12px; }
+.basket-interpretation, .basket-data-note { color: var(--muted); margin-top: 8px; line-height: 1.5; }
+.basket-groups { display: grid; grid-template-columns: repeat(2, minmax(0,1fr)); gap: 8px; margin-top: 14px; }
+.basket-group { display: grid; gap: 7px; padding: 11px; border: 1px solid var(--border); border-radius: 8px; background: #fff; color: var(--ink); text-align: left; cursor: pointer; }
+.basket-group-title strong { font-size: 12px; }
+.basket-group small { color: #8a6431; }
+.basket-progress { height: 7px; background: #eff1eb; border-radius: 6px; overflow: hidden; }
+.basket-progress i { display: block; height: 100%; background: #78916c; border-radius: inherit; }
+.basket-values small { display: block; color: var(--muted); }
+.basket-contribution { color: var(--muted); }
+.basket-contributors { margin-top: 12px; padding: 12px; background: var(--paper); border-radius: 8px; }
+.basket-contributors h3 { font-size: 13px; }
+.basket-contributors p, .basket-contributors small { display: block; margin-top: 7px; font-size: 11px; }
+.basket-comparison { margin-top: 16px; border-top: 1px solid var(--border); padding-top: 12px; }
+.basket-comparison > span { font-weight: 600; }
+.basket-comparison div { display: flex; justify-content: space-between; gap: 10px; margin-top: 8px; }
+.basket-comparison div strong { font-weight: 500; }
 .info-panel > p {
   margin-top: 12px;
   font-size: 11px;

@@ -10,6 +10,7 @@ import {
 import type { AppData, Meal } from "@/lib/types";
 import { MealCard } from "./meal-card";
 import type { SaveAction } from "./forms";
+import { ConsumerBasketPanel } from "./consumer-basket-panel";
 const DAYS = ["Pondělí", "Úterý", "Středa", "Čtvrtek", "Pátek"];
 const MONTHS = [
   "ledna",
@@ -140,6 +141,7 @@ export function WeeklyMenu({
           hlavního jídla
         </span>
       </div>
+      {IS_STAFF && <ConsumerBasketPanel data={data} weekDates={DATES} />}
       <div className="bottom-grid">
         <section className="overview-panel">
           <div className="section-heading">
@@ -152,7 +154,7 @@ export function WeeklyMenu({
             {[
               { label: "Bez masa", category: "Bez masa", icon: "🥬" },
               { label: "Ryby", category: "Ryba", icon: "🐟" },
-              { label: "Drůbež", category: "Drůbež", icon: "🍗" },
+              { label: "Luštěniny", category: "Luštěniny", icon: "🫘" },
               { label: "Sladká jídla", category: "Sladké", icon: "🥣" },
             ].map((item) => (
               <div key={item.label}>
@@ -161,8 +163,7 @@ export function WeeklyMenu({
                 </span>
                 <strong>
                   {
-                    WEEK_MEALS.filter((meal) => meal.category === item.category)
-                      .length
+                    new Set(WEEK_MEALS.filter((meal) => meal.category === item.category).map((meal) => meal.date)).size
                   }
                   ×
                 </strong>
@@ -171,7 +172,7 @@ export function WeeklyMenu({
             ))}
           </div>
           <p className="panel-note">
-            Počty jídel v nabídce, nikoli vyhodnocení spotřebního koše.
+            Pestrost nabídky, nikoli plnění spotřebního koše.
           </p>
         </section>
         <section className="info-panel">
@@ -183,10 +184,6 @@ export function WeeklyMenu({
           </div>
           {IS_STAFF ? (
             <>
-              <p>
-                Spotřební koš: <strong>nelze vyhodnotit</strong>
-              </p>
-              <p>Chybí gramáže, počty porcí, ceny a měsíční výdejky.</p>
               {data.preferencesList.map((preference) => (
                 <p key={preference.dinerName}>
                   <strong>{preference.dinerName}:</strong> {preference.text}
