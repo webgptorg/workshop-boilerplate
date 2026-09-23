@@ -1,25 +1,25 @@
 # Agent guidelines
 
-This repository is a small Promptbook-branded Next.js starter. Keep it understandable enough that a new project can safely fork or copy it.
+Next.js app "Společný stůl", see `README.md` and the business idea in `docs/00-surovy-napad.txt`.
+
+## Layout
+
+- `src/app` routes: `/` login, `/zak` pupil, `/rodic` parent, `/jidelna` staff.
+- `src/model` domain types, `src/data` seed catalog and regulation norms, `src/planning` pure computations.
+- `src/storage` local storage access, `src/hooks/stores` persisted stores composed by `AppDataProvider`.
+- `src/errors` branded errors, messages are written with `spaceTrim` as markdown.
 
 ## Working rules
 
 - Keep TypeScript strict and fix type errors instead of suppressing them.
-- Prefer React Server Components. Add `"use client"` only where browser state or APIs are needed.
-- Reuse `components/ui` and the CSS design tokens before adding another UI dependency.
-- Keep Promptbook brand values in `app/globals.css`; do not invent or modify official logo assets.
-- Put shared utilities in `lib` and reusable React code in `components`.
-- Never commit secrets or real credentials.
-- Keep line endings LF.
-- Keep changes small and the Git history linear where practical.
+- Add `"use client"` only where browser state or APIs are needed.
+- Reuse `src/components/ui` and the CSS tokens in `src/app/globals.css` before adding a UI dependency.
+- Constants are `UPPER_SNAKE_CASE`, booleans are prefixed with `is`, no abbreviations.
+- Keep functions and components small with one responsibility.
+- Do not write taglines or filler texts in the UI.
 
 ## Before finishing
 
-Run:
-
 ```bash
 npm run check
-npm run build
 ```
-
-If you introduce a direct import from another Promptbook package, declare that package explicitly in `dependencies` instead of relying on a transitive dependency.
