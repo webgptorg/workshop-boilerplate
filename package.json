@@ -14,7 +14,7 @@
     "admin": "tsx scripts/admin.ts",
     "coder:generate-boilerplates": "npx ptbk coder generate-boilerplates --count 5*1 --template ./prompts/templates/common.md",
     "coder:add": "npx ptbk coder add --template ./prompts/templates/common.md",
-    "coder:run": "npx ptbk coder run --harness openai-codex --thinking-level low --agent agents/developer.book --context AGENTS.md --test \"npm run check\" --test-before yes-and-fail",
+    "coder:run": "npx ptbk coder run --harness openai-codex --model gpt-6-luna --thinking-level low --agent agents/developer.book --context AGENTS.md --test \"npm run check\" --test-before yes-and-fail",
     "coder:verify": "npx ptbk coder verify",
     "test-for-ptbk-coder": "npm test"
   },
