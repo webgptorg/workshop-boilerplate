@@ -4,7 +4,6 @@ import {
   CalendarDays,
   ChevronRight,
   Check,
-  Heart,
   Lightbulb,
   MessageSquare,
   Settings2,
@@ -184,9 +183,11 @@ export function Dashboard({ initialData }: { initialData: AppData }) {
             />
           )}
           <footer>
-            <span>© 2026 Společný stůl</span>
             <span>
-              <Heart size={12} /> Ukázkový provoz · data se ukládají
+              <span aria-hidden="true">🍽️</span> © 2026 Společný stůl
+            </span>
+            <span>
+              <span aria-hidden="true">💚</span> Ukázkový provoz · data se ukládají
             </span>
           </footer>
         </main>
