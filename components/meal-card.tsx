@@ -8,6 +8,7 @@ export function MealCard({
   isPending,
   onSelect,
   onDetail,
+  isReadOnly = false,
 }: {
   meal: Meal;
   isSelected: boolean;
@@ -15,6 +16,7 @@ export function MealCard({
   isPending: boolean;
   onSelect: () => void;
   onDetail: () => void;
+  isReadOnly?: boolean;
 }) {
   return (
     <article className={`meal-card ${isSelected ? "selected" : ""}`}>
@@ -43,7 +45,7 @@ export function MealCard({
         </span>
         <span title="Alergeny hlavního jídla">A: {meal.allergens}</span>
       </div>
-      {isStaff ? (
+      {isReadOnly ? <span className="meal-read-only">Archivní verze</span> : isStaff ? (
         <button className="meal-choice" onClick={onDetail}>
           <Pencil size={14} /> Upravit jídlo
         </button>

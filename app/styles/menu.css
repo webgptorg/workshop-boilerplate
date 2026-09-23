@@ -29,6 +29,7 @@
   font-size: 8px;
   gap: 2px;
 }
+.meal-read-only { display: block; padding: 8px 0 2px; color: var(--muted); font-size: 10px; }
 .meal-detail {
   background: none;
   border: 0;
@@ -154,6 +155,22 @@
   display: flex;
   align-items: center;
   gap: 6px;
+}
+.menu-workflow { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; margin: 12px 0; }
+.revision-picker { display: flex; align-items: center; gap: 8px; width: fit-content; margin: 12px 0; color: var(--muted); font-size: 12px; }
+.revision-picker select { border: 1px solid var(--border); border-radius: 6px; padding: 7px; background: white; color: var(--foreground); }
+.meal-reason { margin: -5px 0 10px; padding: 0 8px 8px; color: var(--muted); font-size: 11px; }
+.meal-reason summary { cursor: pointer; }
+.meal-reason p { margin-top: 6px; line-height: 1.5; }
+.revision-facts { margin: 12px 0; padding: 10px 12px; border: 1px solid var(--border); border-radius: 7px; color: var(--muted); font-size: 11px; }
+.revision-facts summary { cursor: pointer; font-weight: 600; color: var(--foreground); }
+.revision-facts p { margin-top: 7px; }
+@media print {
+  @page { size: A4 landscape; margin: 10mm; }
+  .sidebar, .topbar, .week-toolbar button, .menu-workflow, .revision-picker, .meal-actions, .bottom-grid, footer { display: none !important; }
+  .workspace, main { width: 100%; margin: 0; padding: 0; }
+  .menu-grid { grid-template-columns: repeat(5, 1fr); gap: 8px; }
+  .meal-card { break-inside: avoid; box-shadow: none; }
 }
 .bottom-grid {
   display: grid;

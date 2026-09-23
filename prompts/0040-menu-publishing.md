@@ -1,4 +1,4 @@
-[ ]
+[x] by Developer on OpenAI Codex `gpt-6-luna` thinking `low` (ChatGPT account) - Implementation ~$0.4033 13 minutes; Testing a few seconds
 
 Approve and publish menus of "Společný stůl" with a history the canteen can defend
 
@@ -44,3 +44,4 @@ Approve and publish menus of "Společný stůl" with a history the canteen can d
 - Nobody except staff and the manager can load a draft, also not through the API.
 - "Proč je tu tohle?" never says something that is not in the revision.
 - `npm run check` and `npm run build` pass.
+

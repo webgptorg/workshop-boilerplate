@@ -72,11 +72,13 @@ export function MealForm({
   role,
   onSave,
   isPending,
+  isPublished = false,
 }: {
   meal: Meal;
   role: Role;
   onSave: SaveAction;
   isPending: boolean;
+  isPublished?: boolean;
 }) {
   const [rating, setRating] = useState(4);
   const IS_STAFF = role === "staff" || role === "manager";
@@ -102,6 +104,7 @@ export function MealForm({
       </div>
       {IS_STAFF ? (
         <>
+          {isPublished && <label>Důvod změny<input name="reason" maxLength={1000} required /></label>}
           <label>
             Název
             <input

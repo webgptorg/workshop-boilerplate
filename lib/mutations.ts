@@ -1,6 +1,7 @@
 import { DATABASE, type SessionUser } from "./database";
 import { AppError } from "../src/errors/app-error";
 import { sendEmail } from "./email";
+import { createMenuRevision, updateMenuWeek } from "./menu-workflow";
 function requiredText(value: unknown, label: string, maximum = 1000): string {
   if (typeof value !== "string" || !value.trim() || value.length > maximum) throw new AppError(`Pole **${label}** musí obsahovat 1 až ${maximum} znaků.`);
   return value.trim();
@@ -18,14 +19,21 @@ export function mutate(user: SessionUser, body: Record<string, unknown>): Promis
   const IS_MANAGER = user.roles.includes("manager");
   if (["edit","resolve","applyProposal"].includes(ACTION) && !IS_STAFF) throw new AppError("Tuto změnu může provést pouze jídelna.",403);
   if (["resolve","applyProposal"].includes(ACTION) && !IS_MANAGER) throw new AppError("O námětech rozhoduje pouze vedoucí jídelny.",403);
+  if (["submitWeek","approveWeek","publishWeek"].includes(ACTION)) { updateMenuWeek(user,body); return; }
   if (["select","feedback","idea","preferences"].includes(ACTION) && !["parent","pupil","adult"].includes(user.role)) throw new AppError("Použijte účet žáka nebo rodiče.",403);
   if (ACTION === "applyProposal") {
     const SOURCE = DATABASE.prepare("SELECT * FROM meals WHERE id=? AND canteen_id=?").get(identifier(body.sourceId),user.canteenId) as Record<string,unknown>|undefined;
     const TARGET = DATABASE.prepare("SELECT id FROM meals WHERE id=? AND canteen_id=?").get(identifier(body.mealId),user.canteenId);
     const IDEA_ID = identifier(body.ideaId);
     const RESPONSE = requiredText(body.response,"Odpověď");
-    const IDEA = DATABASE.prepare("SELECT i.id,i.status,u.email FROM ideas i LEFT JOIN users u ON u.id=i.user_id WHERE i.id=? AND i.canteen_id=?").get(IDEA_ID,user.canteenId) as {id:number;status:string;email:string|null}|undefined;
+    const IDEA = DATABASE.prepare("SELECT i.id,i.text,i.status,u.email FROM ideas i LEFT JOIN users u ON u.id=i.user_id WHERE i.id=? AND i.canteen_id=?").get(IDEA_ID,user.canteenId) as {id:number;text:string;status:string;email:string|null}|undefined;
     if (!SOURCE || !TARGET || !IDEA || IDEA.status !== "Čeká na vyřízení") throw new AppError("Návrh už není dostupný nebo byl již vyřízen.",404);
+    const TARGET_MEAL = DATABASE.prepare("SELECT date,name FROM meals WHERE id=? AND canteen_id=?").get(Number(TARGET.id),user.canteenId) as {date:string;name:string};
+    const TARGET_WEEK = new Date(`${TARGET_MEAL.date}T12:00:00Z`); TARGET_WEEK.setUTCDate(TARGET_WEEK.getUTCDate()-((TARGET_WEEK.getUTCDay()+6)%7));
+    const TARGET_WEEK_KEY = TARGET_WEEK.toISOString().slice(0,10);
+    const TARGET_WEEK_STATUS = DATABASE.prepare("SELECT status FROM menu_weeks WHERE canteen_id=? AND week_start=?").get(user.canteenId,TARGET_WEEK_KEY) as {status:string}|undefined;
+    const CHANGE_REASON = TARGET_WEEK_STATUS?.status === "published" ? requiredText(body.reason,"Důvod změny") : null;
+    if (TARGET_WEEK_STATUS?.status === "ready" || TARGET_WEEK_STATUS?.status === "approved") throw new AppError("Týden čeká na schválení nebo zveřejnění a nelze jej upravit.");
     const PROPOSAL_METADATA = typeof body.proposalMetadata === "string" ? body.proposalMetadata : JSON.stringify({ model: "legacy-catalog", promptVersion: "legacy-v1", ruleSet: "unverified" });
     if (PROPOSAL_METADATA.length > 20000) throw new AppError("Záznam podkladů návrhu je příliš dlouhý.");
     DATABASE.exec("BEGIN IMMEDIATE");
@@ -34,6 +42,10 @@ export function mutate(user: SessionUser, body: Record<string, unknown>): Promis
       DATABASE.prepare("DELETE FROM selections_v2 WHERE meal_id=? AND canteen_id=?").run(Number(TARGET.id),user.canteenId);
       DATABASE.prepare("DELETE FROM feedback WHERE meal_id=? AND canteen_id=?").run(Number(TARGET.id),user.canteenId);
       DATABASE.prepare("UPDATE ideas SET status='Upraveno',response=?,proposal_metadata=? WHERE id=? AND canteen_id=?").run(RESPONSE,PROPOSAL_METADATA,IDEA_ID,user.canteenId);
+      if (CHANGE_REASON) {
+        DATABASE.prepare("DELETE FROM selections_v2 WHERE canteen_id=? AND date=?").run(user.canteenId,TARGET_MEAL.date);
+        createMenuRevision(user,TARGET_WEEK_KEY,CHANGE_REASON,{mealId:Number(TARGET.id),previousName:TARGET_MEAL.name,currentName:String(SOURCE.name),idea:{id:IDEA.id,text:IDEA.text}});
+      }
       DATABASE.exec("COMMIT");
     } catch (error) { DATABASE.exec("ROLLBACK"); throw error; }
     return IDEA.email ? sendEmail({ to: IDEA.email, subject: "Odpověď na váš námět · Společný stůl", text: RESPONSE }) : Promise.resolve();
@@ -41,9 +53,11 @@ export function mutate(user: SessionUser, body: Record<string, unknown>): Promis
   }
   if (["select","feedback","edit"].includes(ACTION)) {
     const MEAL_ID=identifier(body.mealId);
-    const MEAL=DATABASE.prepare("SELECT * FROM meals WHERE id=? AND canteen_id=?").get(MEAL_ID,user.canteenId) as {date:string}|undefined;
+    const MEAL=DATABASE.prepare("SELECT * FROM meals WHERE id=? AND canteen_id=?").get(MEAL_ID,user.canteenId) as {date:string;name:string}|undefined;
     if (!MEAL) throw new AppError("Jídlo již není v jídelníčku.",404);
     if (ACTION === "select") {
+      const WEEK_START = new Date(`${MEAL.date}T12:00:00Z`); WEEK_START.setUTCDate(WEEK_START.getUTCDate()-((WEEK_START.getUTCDay()+6)%7));
+      if (!DATABASE.prepare("SELECT 1 FROM menu_weeks WHERE canteen_id=? AND week_start=? AND status='published'").get(user.canteenId,WEEK_START.toISOString().slice(0,10))) throw new AppError("Výběr jídla ještě není otevřen.",403);
       const DINER_ID=user.dinerId;
       if (!DINER_ID || !["parent","pupil","adult"].includes(user.role)) throw new AppError("Vyberte strávníka.",403);
       assertOwnedDiner(user,DINER_ID);
@@ -57,8 +71,17 @@ export function mutate(user: SessionUser, body: Record<string, unknown>): Promis
       const CATEGORY=requiredText(body.category,"Kategorie"), ICON=requiredText(body.icon,"Ikona"), SOUP=requiredText(body.soup,"Polévka",120);
       if (!IS_STAFF) throw new AppError("Jídelníček může upravovat pouze personál jídelny.",403);
       if (!["Ryba","Drůbež","Maso","Bez masa","Sladké"].includes(CATEGORY) || !["fish","pasta","chicken","greens","meatballs","rice","mushroom","lentils","salad","sweet"].includes(ICON)) throw new AppError("Vyberte platnou kategorii a ikonu.");
-      DATABASE.prepare("UPDATE meals SET name=?,side=?,ingredients=?,allergens=?,category=?,icon=? WHERE id=? AND canteen_id=?").run(requiredText(body.name,"Název",120),requiredText(body.side,"Příloha",120),requiredText(body.ingredients,"Suroviny"),requiredText(body.allergens,"Alergeny",100),CATEGORY,ICON,MEAL_ID,user.canteenId);
+      const WEEK_START = new Date(`${MEAL.date}T12:00:00Z`); WEEK_START.setUTCDate(WEEK_START.getUTCDate()-((WEEK_START.getUTCDay()+6)%7));
+      const WEEK_KEY = WEEK_START.toISOString().slice(0,10);
+      const WEEK_STATUS = DATABASE.prepare("SELECT status FROM menu_weeks WHERE canteen_id=? AND week_start=?").get(user.canteenId,WEEK_KEY) as {status:string}|undefined;
+      const CHANGE_REASON = WEEK_STATUS?.status === "published" ? requiredText(body.reason,"Důvod změny") : null;
+      if (WEEK_STATUS?.status === "ready" || WEEK_STATUS?.status === "approved") throw new AppError("Týden čeká na schválení nebo zveřejnění a nelze jej upravit.");
+      DATABASE.prepare("UPDATE meals SET name=?,side=?,ingredients=?,allergens=?,category=?,icon=? WHERE id=? AND canteen_id=?").run(requiredText(body.name,"Název",120),requiredText(body.side,"Příloha",120),requiredText(body.ingredients,"Suroviny"),requiredText(body.allergens,"Alergeny"),CATEGORY,ICON,MEAL_ID,user.canteenId);
       DATABASE.prepare("UPDATE meals SET soup=? WHERE date=? AND canteen_id=?").run(SOUP,MEAL.date,user.canteenId);
+      if (CHANGE_REASON) {
+        DATABASE.prepare("DELETE FROM selections_v2 WHERE canteen_id=? AND date=?").run(user.canteenId,MEAL.date);
+        createMenuRevision(user,WEEK_KEY,CHANGE_REASON,{mealId:MEAL_ID,previousName:MEAL.name,currentName:requiredText(body.name,"Název",120)});
+      }
     }
     return;
   }

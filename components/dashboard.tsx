@@ -226,6 +226,7 @@ export function Dashboard({ initialData }: { initialData: AppData }) {
             role={ROLE}
             onSave={save}
             isPending={isPending}
+            isPublished={data.menuWeeks.find((week) => { const DATE=new Date(`${activeMeal.date}T12:00:00Z`); DATE.setUTCDate(DATE.getUTCDate()-((DATE.getUTCDay()+6)%7)); return week.weekStart===DATE.toISOString().slice(0,10); })?.status === "published"}
           />
         </Dialog>
       )}

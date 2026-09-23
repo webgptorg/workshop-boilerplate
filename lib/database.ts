@@ -79,6 +79,11 @@ function migrate() {
     if (!IDEA_COLUMNS.some((column) => column.name === "proposal_metadata")) DATABASE.exec("ALTER TABLE ideas ADD COLUMN proposal_metadata TEXT");
     DATABASE.exec("PRAGMA user_version=3");
   }
+  if (VERSION < 4) {
+    DATABASE.exec(`CREATE TABLE IF NOT EXISTS menu_weeks (canteen_id INTEGER NOT NULL REFERENCES canteens(id), week_start TEXT NOT NULL, status TEXT NOT NULL DEFAULT 'draft' CHECK(status IN ('draft','ready','approved','published')), updated_at INTEGER NOT NULL, PRIMARY KEY(canteen_id,week_start));
+      CREATE TABLE IF NOT EXISTS menu_revisions (id INTEGER PRIMARY KEY, canteen_id INTEGER NOT NULL REFERENCES canteens(id), week_start TEXT NOT NULL, revision_number INTEGER NOT NULL, snapshot TEXT NOT NULL, rule_set_id TEXT NOT NULL, author_id INTEGER REFERENCES users(id), reason TEXT, created_at INTEGER NOT NULL, UNIQUE(canteen_id,week_start,revision_number));
+      PRAGMA user_version=4`);
+  }
 }
 migrate();
 if (process.env.IS_DEMO_MODE === "true") seedDemo(DATABASE);
@@ -95,6 +100,8 @@ export function getUser(token?: string): SessionUser | null {
 }
 export function getData(user: SessionUser | null): AppData {
   const CANteen_ID = user?.canteenId || 1;
+  const ALL_WEEK_STARTS = [...new Set((DATABASE.prepare("SELECT date FROM meals WHERE canteen_id=? ORDER BY date").all(CANteen_ID) as {date:string}[]).map(({date}) => { const DATE = new Date(`${date}T12:00:00Z`); DATE.setUTCDate(DATE.getUTCDate() - ((DATE.getUTCDay() + 6) % 7)); return DATE.toISOString().slice(0,10); }))];
+  for (const WEEK_START of ALL_WEEK_STARTS) DATABASE.prepare("INSERT OR IGNORE INTO menu_weeks(canteen_id,week_start,status,updated_at) VALUES(?,?,'draft',?)").run(CANteen_ID,WEEK_START,Date.now());
   const DINER_ID = user?.dinerId;
   const SELECTIONS = user && DINER_ID ? DATABASE.prepare("SELECT date,meal_id FROM selections_v2 WHERE diner_id=? AND canteen_id=?").all(DINER_ID,CANteen_ID) as {date:string;meal_id:number}[] : [];
   const IS_STAFF = user?.roles.some((role) => role === "staff" || role === "manager");
@@ -107,7 +114,19 @@ export function getData(user: SessionUser | null): AppData {
   const MANAGED_DINERS = user?.roles.includes("manager") ? DATABASE.prepare("SELECT d.id,d.name,d.class_name AS className,d.diner_number AS dinerNumber,d.type,d.archived_at AS archivedAt,COALESCE((SELECT group_concat(u.id||':'||u.name,'|') FROM diner_links l JOIN users u ON u.id=l.user_id WHERE l.diner_id=d.id AND l.canteen_id=d.canteen_id AND l.relationship='parent'),'') AS parentLinks FROM diners d WHERE d.canteen_id=? ORDER BY d.name").all(CANteen_ID) as AppData["managedDiners"] : [];
   const MANAGED_PEOPLE = user?.roles.includes("manager") ? DATABASE.prepare("SELECT u.id,u.name,u.email,group_concat(r.role, ',') AS role_list FROM users u JOIN user_roles r ON r.user_id=u.id WHERE r.canteen_id=? AND u.deleted_at IS NULL GROUP BY u.id,u.name,u.email ORDER BY u.name").all(CANteen_ID).map((row)=>{const ITEM=row as {id:number;name:string;email:string|null;role_list:string};return {id:ITEM.id,name:ITEM.name,email:ITEM.email,roles:ITEM.role_list.split(",") as Role[]};}) : [];
   const PREFERENCES_LIST = user?.roles.some((role)=>role === "staff" || role === "manager") ? DATABASE.prepare("SELECT d.name AS dinerName,p.text FROM preferences_v2 p JOIN diners d ON d.id=p.diner_id WHERE p.canteen_id=? AND p.text<>'' ORDER BY d.name").all(CANteen_ID) as AppData["preferencesList"] : [];
-  const MEALS = DATABASE.prepare("SELECT * FROM meals WHERE canteen_id=? ORDER BY date,slot").all(CANteen_ID).map((row)=>({...row})) as Meal[];
+  const IS_PRIVILEGED = Boolean(user?.roles.some((role) => role === "staff" || role === "manager"));
+  const WEEKS = DATABASE.prepare("SELECT week_start AS weekStart,status FROM menu_weeks WHERE canteen_id=? ORDER BY week_start").all(CANteen_ID) as { weekStart: string; status: "draft" | "ready" | "approved" | "published" }[];
+  const DISPLAY_WEEKS = WEEKS.length ? WEEKS : ["2026-09-21","2026-09-28","2026-10-05"].map((weekStart)=>({weekStart,status:"draft" as const}));
+  const MENU_REVISIONS = DATABASE.prepare("SELECT id,week_start AS weekStart,revision_number AS revisionNumber,snapshot,rule_set_id AS ruleSetId,author_id AS authorId,reason,created_at AS createdAt FROM menu_revisions WHERE canteen_id=? ORDER BY revision_number DESC").all(CANteen_ID) as {id:number;weekStart:string;revisionNumber:number;snapshot:string;ruleSetId:string;authorId:number|null;reason:string|null;createdAt:number}[];
+  let MEALS: Meal[];
+  if (IS_PRIVILEGED) MEALS = DATABASE.prepare("SELECT * FROM meals WHERE canteen_id=? ORDER BY date,slot").all(CANteen_ID).map((row)=>({...row})) as Meal[];
+  else {
+    const PUBLISHED_WEEKS = WEEKS.filter((week) => week.status === "published");
+    MEALS = PUBLISHED_WEEKS.flatMap((week) => {
+      const REVISION = MENU_REVISIONS.find((revision) => revision.weekStart === week.weekStart);
+      return REVISION ? (JSON.parse(REVISION.snapshot) as { meals: Meal[] }).meals : [];
+    });
+  }
   const OPERATING_DATES = [...new Set(MEALS.map((meal) => meal.date))];
-  return { isDemoMode:process.env.IS_DEMO_MODE === "true", user: user ? {id:user.id,name:user.name,role:user.role,username:user.username,email:user.email} : null, roles:ROLES, activeDinerId:DINER_ID || null, canteens:USER_CANTEENS, activeCanteenId:user?.canteenId || null, auditLog:AUDIT_LOG, managedDiners:MANAGED_DINERS, managedPeople:MANAGED_PEOPLE, diners:DINERS, meals:MEALS, recipeVersions:[], selections:Object.fromEntries(SELECTIONS.map((row)=>[row.date,row.meal_id])), feedback:FEEDBACK as AppData["feedback"], ideas:IDEAS as AppData["ideas"], preferences:user && DINER_ID ? String((DATABASE.prepare("SELECT text FROM preferences_v2 WHERE diner_id=? AND canteen_id=?").get(DINER_ID,CANteen_ID) as {text?:string}|undefined)?.text || "") : "", preferencesList:PREFERENCES_LIST, weeks:["2026-09-21","2026-09-28","2026-10-05"], operatingDates: OPERATING_DATES };
+  return { isDemoMode:process.env.IS_DEMO_MODE === "true", user: user ? {id:user.id,name:user.name,role:user.role,username:user.username,email:user.email} : null, roles:ROLES, activeDinerId:DINER_ID || null, canteens:USER_CANTEENS, activeCanteenId:user?.canteenId || null, auditLog:AUDIT_LOG, managedDiners:MANAGED_DINERS, managedPeople:MANAGED_PEOPLE, diners:DINERS, meals:MEALS, recipeVersions:[], selections:Object.fromEntries(SELECTIONS.map((row)=>[row.date,row.meal_id])), feedback:FEEDBACK as AppData["feedback"], ideas:IDEAS as AppData["ideas"], preferences:user && DINER_ID ? String((DATABASE.prepare("SELECT text FROM preferences_v2 WHERE diner_id=? AND canteen_id=?").get(DINER_ID,CANteen_ID) as {text?:string}|undefined)?.text || "") : "", preferencesList:PREFERENCES_LIST, weeks:DISPLAY_WEEKS.map((week)=>week.weekStart), operatingDates: OPERATING_DATES, menuWeeks: DISPLAY_WEEKS.map((week)=>({...week,revisions:MENU_REVISIONS.filter((revision)=>revision.weekStart===week.weekStart).map(({id,reason,createdAt,snapshot})=>({id,reason,createdAt,snapshot}))})) };
 }

@@ -102,6 +102,7 @@ export type AppData = {
   preferencesList: { dinerName: string; text: string }[];
   weeks: string[];
   operatingDates: string[];
+  menuWeeks: { weekStart: string; status: "draft" | "ready" | "approved" | "published"; revisions: { id: number; reason: string | null; createdAt: number; snapshot: string }[] }[];
 };
 export const ROLE_LABELS: Record<Role, string> = {
   pupil: "Žák",

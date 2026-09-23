@@ -49,6 +49,15 @@ test("Each operating day has exactly two meals; the holiday has none", () => {
   );
 });
 test("Pupil selection is shared with parent and replaced atomically", () => {
+  getData(STAFF);
+  assert.equal(getData(null).meals.length, 0, "anonymous visitors cannot read a draft");
+  mutate(STAFF, { action: "submitWeek", weekStart: "2026-09-21" });
+  mutate(STAFF, { action: "approveWeek", weekStart: "2026-09-21" });
+  mutate(STAFF, { action: "publishWeek", weekStart: "2026-09-21" });
+  const PUBLISHED_DATA = getData(null);
+  const PUBLISHED_WEEK = PUBLISHED_DATA.menuWeeks.find((week) => week.weekStart === "2026-09-21");
+  assert.equal(PUBLISHED_DATA.meals.length, 10);
+  assert.equal(JSON.parse(PUBLISHED_WEEK?.revisions[0].snapshot || "{}").basketResults.status, "missingData");
   mutate(PUPIL, { action: "select", mealId: 1 });
   assert.equal(getData(PARENT).selections["2026-09-21"], 1);
   mutate(PARENT, { action: "select", mealId: 2 });
@@ -106,6 +115,7 @@ test("An idea gets a preview and is applied only by staff, with a response", () 
     sourceId: PROPOSAL.meal.id,
     mealId: 3,
     response: "Místo slaniny nabízíme rajčatovou omáčku.",
+    reason: "Návrh rodičů nahradil původní recepturu.",
   });
   assert.equal(
     getData(PARENT).ideas[0].response,
