@@ -1,5 +1,6 @@
 import { DATABASE, type SessionUser } from "./database";
 import { AppError } from "../src/errors/app-error";
+import { sendEmail } from "./email";
 function requiredText(value: unknown, label: string, maximum = 1000): string {
   if (typeof value !== "string" || !value.trim() || value.length > maximum) throw new AppError(`Pole **${label}** musí obsahovat 1 až ${maximum} znaků.`);
   return value.trim();
@@ -11,27 +12,31 @@ function identifier(value: unknown): number {
 function assertOwnedDiner(user: SessionUser, dinerId: number): void {
   if (!DATABASE.prepare("SELECT 1 FROM diner_links WHERE diner_id=? AND user_id=? AND canteen_id=?").get(dinerId,user.id,user.canteenId)) throw new AppError("Strávník nebyl nalezen.",404);
 }
-export function mutate(user: SessionUser, body: Record<string, unknown>) {
+export function mutate(user: SessionUser, body: Record<string, unknown>): Promise<void> | void {
   const ACTION = String(body.action || "");
   const IS_STAFF = user.roles.includes("staff") || user.roles.includes("manager");
   const IS_MANAGER = user.roles.includes("manager");
   if (["edit","resolve","applyProposal"].includes(ACTION) && !IS_STAFF) throw new AppError("Tuto změnu může provést pouze jídelna.",403);
-  if (ACTION === "applyProposal" && !IS_MANAGER) throw new AppError("Náměty může schvalovat pouze vedoucí jídelny.",403);
+  if (["resolve","applyProposal"].includes(ACTION) && !IS_MANAGER) throw new AppError("O námětech rozhoduje pouze vedoucí jídelny.",403);
   if (["select","feedback","idea","preferences"].includes(ACTION) && !["parent","pupil","adult"].includes(user.role)) throw new AppError("Použijte účet žáka nebo rodiče.",403);
   if (ACTION === "applyProposal") {
     const SOURCE = DATABASE.prepare("SELECT * FROM meals WHERE id=? AND canteen_id=?").get(identifier(body.sourceId),user.canteenId) as Record<string,unknown>|undefined;
     const TARGET = DATABASE.prepare("SELECT id FROM meals WHERE id=? AND canteen_id=?").get(identifier(body.mealId),user.canteenId);
     const IDEA_ID = identifier(body.ideaId);
     const RESPONSE = requiredText(body.response,"Odpověď");
-    if (!SOURCE || !TARGET || !DATABASE.prepare("SELECT id FROM ideas WHERE id=? AND canteen_id=?").get(IDEA_ID,user.canteenId)) throw new AppError("Návrh už není dostupný.",404);
+    const IDEA = DATABASE.prepare("SELECT i.id,i.status,u.email FROM ideas i LEFT JOIN users u ON u.id=i.user_id WHERE i.id=? AND i.canteen_id=?").get(IDEA_ID,user.canteenId) as {id:number;status:string;email:string|null}|undefined;
+    if (!SOURCE || !TARGET || !IDEA || IDEA.status !== "Čeká na vyřízení") throw new AppError("Návrh už není dostupný nebo byl již vyřízen.",404);
+    const PROPOSAL_METADATA = typeof body.proposalMetadata === "string" ? body.proposalMetadata : JSON.stringify({ model: "legacy-catalog", promptVersion: "legacy-v1", ruleSet: "unverified" });
+    if (PROPOSAL_METADATA.length > 20000) throw new AppError("Záznam podkladů návrhu je příliš dlouhý.");
     DATABASE.exec("BEGIN IMMEDIATE");
     try {
       DATABASE.prepare("UPDATE meals SET name=?,side=?,icon=?,category=?,allergens=?,ingredients=? WHERE id=? AND canteen_id=?").run(String(SOURCE.name),String(SOURCE.side),String(SOURCE.icon),String(SOURCE.category),String(SOURCE.allergens),String(SOURCE.ingredients),Number(TARGET.id),user.canteenId);
       DATABASE.prepare("DELETE FROM selections_v2 WHERE meal_id=? AND canteen_id=?").run(Number(TARGET.id),user.canteenId);
       DATABASE.prepare("DELETE FROM feedback WHERE meal_id=? AND canteen_id=?").run(Number(TARGET.id),user.canteenId);
-      DATABASE.prepare("UPDATE ideas SET status='Upraveno',response=? WHERE id=? AND canteen_id=?").run(RESPONSE,IDEA_ID,user.canteenId);
+      DATABASE.prepare("UPDATE ideas SET status='Upraveno',response=?,proposal_metadata=? WHERE id=? AND canteen_id=?").run(RESPONSE,PROPOSAL_METADATA,IDEA_ID,user.canteenId);
       DATABASE.exec("COMMIT");
     } catch (error) { DATABASE.exec("ROLLBACK"); throw error; }
+    return IDEA.email ? sendEmail({ to: IDEA.email, subject: "Odpověď na váš námět · Společný stůl", text: RESPONSE }) : Promise.resolve();
     return;
   }
   if (["select","feedback","edit"].includes(ACTION)) {

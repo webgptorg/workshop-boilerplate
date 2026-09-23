@@ -90,7 +90,7 @@ export async function POST(request: Request) {
       COOKIE_STORE.delete(SESSION_COOKIE); USER=null;
     } else {
       if (!USER) throw new AppError("Pro uložení změny se přihlaste.",401);
-      mutate(USER,BODY);
+      await mutate(USER,BODY);
     }
     return Response.json({...getData(USER),...(ONE_TIME_CODE?{oneTimeCode:ONE_TIME_CODE}:{})});
   } catch (error) {

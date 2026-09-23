@@ -74,6 +74,11 @@ function migrate() {
     } catch (error) { DATABASE.exec("ROLLBACK"); throw error; }
     finally { DATABASE.exec("PRAGMA legacy_alter_table=OFF; PRAGMA foreign_keys=ON"); }
   }
+  if (VERSION < 3) {
+    const IDEA_COLUMNS = DATABASE.prepare("PRAGMA table_info(ideas)").all() as { name: string }[];
+    if (!IDEA_COLUMNS.some((column) => column.name === "proposal_metadata")) DATABASE.exec("ALTER TABLE ideas ADD COLUMN proposal_metadata TEXT");
+    DATABASE.exec("PRAGMA user_version=3");
+  }
 }
 migrate();
 if (process.env.IS_DEMO_MODE === "true") seedDemo(DATABASE);
@@ -94,7 +99,7 @@ export function getData(user: SessionUser | null): AppData {
   const SELECTIONS = user && DINER_ID ? DATABASE.prepare("SELECT date,meal_id FROM selections_v2 WHERE diner_id=? AND canteen_id=?").all(DINER_ID,CANteen_ID) as {date:string;meal_id:number}[] : [];
   const IS_STAFF = user?.roles.some((role) => role === "staff" || role === "manager");
   const FEEDBACK = DATABASE.prepare(`SELECT f.id,CASE WHEN f.rating IS NOT NULL THEN 'Anonymní strávník' ELSE COALESCE(u.name,'Smazaný uživatel') END AS name,m.name AS meal,f.rating,f.comment FROM feedback f LEFT JOIN users u ON u.id=f.user_id JOIN meals m ON m.id=f.meal_id WHERE f.canteen_id=? ${IS_STAFF ? "" : "AND f.user_id=?"} ORDER BY f.id DESC`).all(...(IS_STAFF ? [CANteen_ID] : [CANteen_ID,user?.id || 0]));
-  const IDEAS = DATABASE.prepare(`SELECT i.*,COALESCE(u.name,'Smazaný uživatel') AS name FROM ideas i LEFT JOIN users u ON u.id=i.user_id WHERE i.canteen_id=? ${IS_STAFF ? "" : "AND i.user_id=?"} ORDER BY i.id DESC`).all(...(IS_STAFF ? [CANteen_ID] : [CANteen_ID,user?.id || 0]));
+  const IDEAS = DATABASE.prepare(`SELECT i.*,i.proposal_metadata AS proposalMetadata,COALESCE(u.name,'Smazaný uživatel') AS name FROM ideas i LEFT JOIN users u ON u.id=i.user_id WHERE i.canteen_id=? ${IS_STAFF ? "" : "AND i.user_id=?"} ORDER BY i.id DESC`).all(...(IS_STAFF ? [CANteen_ID] : [CANteen_ID,user?.id || 0]));
   const ROLES = user ? DATABASE.prepare("SELECT role FROM user_roles WHERE user_id=? AND canteen_id=? ORDER BY role").all(user.id,CANteen_ID).map((row)=>String((row as {role:string}).role) as Role) : [];
   const USER_CANTEENS = user ? DATABASE.prepare("SELECT c.id,c.name,group_concat(r.role, ',') AS role_list FROM user_roles r JOIN canteens c ON c.id=r.canteen_id WHERE r.user_id=? GROUP BY c.id,c.name ORDER BY c.name").all(user.id).map((row)=>{const ITEM=row as {id:number;name:string;role_list:string};return {id:ITEM.id,name:ITEM.name,roles:ITEM.role_list.split(",") as Role[]};}) : [];
   const DINERS = user ? DATABASE.prepare("SELECT d.id,d.name,d.class_name AS className,d.type,(SELECT u.username FROM diner_links own JOIN users u ON u.id=own.user_id JOIN user_roles r ON r.user_id=u.id AND r.canteen_id=d.canteen_id AND r.role='pupil' WHERE own.diner_id=d.id AND own.relationship='self' LIMIT 1) AS pupilUsername FROM diners d JOIN diner_links l ON l.diner_id=d.id WHERE l.user_id=? AND l.canteen_id=? AND d.canteen_id=? AND (d.archived_at IS NULL OR d.archived_at>?) ORDER BY d.name").all(user.id,CANteen_ID,CANteen_ID,Date.now()-30*86400000) as AppData["diners"] : [];

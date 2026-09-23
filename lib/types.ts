@@ -79,6 +79,7 @@ export type Idea = {
   status: string;
   response: string;
   name: string;
+  proposalMetadata?: string | null;
 };
 export type AppData = {
   isDemoMode: boolean;

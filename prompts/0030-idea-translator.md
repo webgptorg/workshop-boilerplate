@@ -1,4 +1,4 @@
-[ ]
+[x] by Developer on OpenAI Codex `gpt-6-luna` thinking `low` (ChatGPT account) - Implementation ~$0.1851 4 minutes; Testing a few seconds
 
 Turn a parent's idea into a meal the canteen can cook, and explain the result back
 
@@ -51,3 +51,4 @@ Turn a parent's idea into a meal the canteen can cook, and explain the result ba
 - An idea that does not fit gets a reason and an adjusted version that passes.
 - Nothing is published or sent without the manager's approval.
 - `npm run check` and `npm run build` pass.
+

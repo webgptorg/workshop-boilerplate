@@ -20,6 +20,7 @@
     "check:offline-build": "node scripts/check-offline-build.mjs"
   },
   "dependencies": {
+    "@anthropic-ai/sdk": "^0.128.0",
     "lucide-react": "0.536.0",
     "next": "latest",
     "qrcode": "^1.5.4",

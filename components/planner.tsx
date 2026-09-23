@@ -1,110 +1,32 @@
 "use client";
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import type { AppData } from "@/lib/types";
 import { proposeMeal } from "@/lib/planner";
 import { Button } from "./ui/button";
 import type { SaveAction } from "./forms";
-export function Planner({
-  data,
-  onSave,
-  isPending,
-}: {
-  data: AppData;
-  onSave: SaveAction;
-  isPending: boolean;
-}) {
-  const [ideaId, setIdeaId] = useState(String(data.ideas[0]?.id || ""));
-  const [targetId, setTargetId] = useState(String(data.meals[0].id));
+
+export function Planner({ data, onSave, isPending }: { data: AppData; onSave: SaveAction; isPending: boolean }) {
+  const [ideaId, setIdeaId] = useState(String(data.ideas.find((idea) => idea.status === "Čeká na vyřízení")?.id || ""));
   const [isPreviewVisible, setIsPreviewVisible] = useState(false);
-  const IDEA = data.ideas.find((idea) => idea.id === Number(ideaId));
-  const PROPOSAL = proposeMeal(IDEA?.text || "", data.meals);
-  return (
-    <section className="planner-panel">
-      <h3>Zařadit námět do jídelníčku</h3>
-      <form
-        onSubmit={(event) => {
-          event.preventDefault();
-          setIsPreviewVisible(true);
-        }}
-      >
-        <label>
-          Námět
-          <select
-            value={ideaId}
-            onChange={(event) => {
-              setIdeaId(event.target.value);
-              setIsPreviewVisible(false);
-            }}
-            required
-          >
-            <option value="">Vyberte námět</option>
-            {data.ideas.map((idea) => (
-              <option key={idea.id} value={idea.id}>
-                {idea.text}
-              </option>
-            ))}
-          </select>
-        </label>
-        <label>
-          Nahradit jídlo
-          <select
-            value={targetId}
-            onChange={(event) => {
-              setTargetId(event.target.value);
-              setIsPreviewVisible(false);
-            }}
-          >
-            {data.meals.map((meal) => (
-              <option key={meal.id} value={meal.id}>
-                {meal.date} · {meal.slot === 1 ? "Hlavní" : "Alternativa"} ·{" "}
-                {meal.name}
-              </option>
-            ))}
-          </select>
-        </label>
-        <Button type="submit" variant="secondary" disabled={!IDEA}>
-          Připravit návrh
-        </Button>
+  const idea = data.ideas.find((item) => item.id === Number(ideaId));
+  const proposal = useMemo(() => idea ? proposeMeal(idea.text, data.meals) : null, [idea, data.meals]);
+  return <section className="planner-panel">
+    <h3>Zařadit námět do jídelníčku</h3>
+    <form onSubmit={(event) => { event.preventDefault(); setIsPreviewVisible(true); }}>
+      <label>Námět<select value={ideaId} onChange={(event) => { setIdeaId(event.target.value); setIsPreviewVisible(false); }} required>
+        <option value="">Vyberte nevyřízený námět</option>{data.ideas.filter((item) => item.status === "Čeká na vyřízení").map((item) => <option key={item.id} value={item.id}>{item.text}</option>)}
+      </select></label>
+      <Button type="submit" variant="secondary" disabled={!idea}>Připravit návrh</Button>
+    </form>
+    {isPreviewVisible && idea && proposal && <div className="proposal">
+      <h3>{proposal.meal?.name ?? "Návrh nelze připravit"}</h3>
+      <p>{proposal.meal.ingredients}</p><p>{proposal.reason}</p><p>{proposal.isFallback ? "Používá se místní katalogový návrh; jazykový model není nastaven." : `Návrh zpracoval ${proposal.provenance.model}.`}</p>
+      <p>{proposal.structure.confidence === "draft" ? "Nová receptura je návrhem s odhadovanými gramážemi; před použitím ji musí potvrdit vedoucí." : "Novou recepturu, gramáže a alergeny musí potvrdit vedoucí."}</p>
+      {proposal.slots.length > 0 && <fieldset><legend>Tři nejvhodnější volná místa (návrh)</legend>{proposal.slots.map((slot) => <label key={slot.meal.id} className="proposal-slot"><input type="radio" name="target" value={slot.meal.id} defaultChecked={proposal.slots[0]?.meal.id === slot.meal.id} /><span><strong>{slot.meal.date} · hlavní jídlo</strong><small>{slot.changes.join(" ")}</small><small>{slot.effects.join(" ")}</small></span></label>)}</fieldset>}
+      <form onSubmit={async (event) => { event.preventDefault(); const form = event.currentTarget; const formData = new FormData(form); const targetId = Number(formData.get("target")); const selectedSlot = proposal.slots.find((slot) => slot.meal.id === targetId); if (await onSave({ action: "applyProposal", ideaId: idea.id, mealId: targetId, sourceId: proposal.meal.id, response: formData.get("response"), proposalMetadata: JSON.stringify({ ...proposal, selectedSlot }) })) setIsPreviewVisible(false); }}>
+        <label>Odpověď rodiči<textarea name="response" required maxLength={1000} defaultValue={proposal.explanation} /></label>
+        <Button disabled={isPending || proposal.slots.length === 0} type="submit">Schválit a zařadit</Button>
       </form>
-      {isPreviewVisible && IDEA && (
-        <div className="proposal">
-          <h3>{PROPOSAL.meal.name}</h3>
-          <p>{PROPOSAL.meal.ingredients}</p>
-          <p>{PROPOSAL.reason}</p>
-          <p>
-            <strong>Neověřeno:</strong> spotřební koš, cena porce a kapacita
-            kuchyně. Ostatní jídla týdne zůstávají zachována.
-          </p>
-          <form
-            onSubmit={async (event) => {
-              event.preventDefault();
-              if (
-                await onSave({
-                  action: "applyProposal",
-                  ideaId: IDEA.id,
-                  mealId: Number(targetId),
-                  sourceId: PROPOSAL.meal.id,
-                  response: new FormData(event.currentTarget).get("response"),
-                })
-              )
-                setIsPreviewVisible(false);
-            }}
-          >
-            <label>
-              Odpověď rodiči
-              <textarea
-                name="response"
-                required
-                maxLength={1000}
-                defaultValue={`Zařadili jsme ${PROPOSAL.meal.name.toLowerCase()} na ${data.meals.find((meal) => meal.id === Number(targetId))?.date}. ${PROPOSAL.isMatch ? "Použili jsme variantu ze startovního katalogu." : "Původní námět nemá dostupnou recepturu, proto nabízíme tuto alternativu."}`}
-              />
-            </label>
-            <Button disabled={isPending} type="submit">
-              Schválit a zařadit do jídelníčku
-            </Button>
-          </form>
-        </div>
-      )}
-    </section>
-  );
+    </div>}
+  </section>;
 }
