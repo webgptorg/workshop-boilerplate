@@ -94,6 +94,7 @@ export type AppData = {
   oneTimeCode?: string;
   diners: { id: number; name: string; className: string | null; type: "pupil" | "adult"; pupilUsername?: string | null }[];
   meals: Meal[];
+  mealAvailability: Record<string, boolean>;
   recipeVersions: RecipeVersion[];
   selections: Record<string, number>;
   feedback: Feedback[];

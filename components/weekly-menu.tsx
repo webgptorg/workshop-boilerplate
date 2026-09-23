@@ -38,24 +38,24 @@ function getDates(week: string) {
 }
 type MenuProps = {
   data: AppData;
-  weekIndex: number;
-  setWeekIndex: (index: number) => void;
+  weekStart: string;
+  setWeekStart: (weekStart: string) => void;
   isPending: boolean;
   save: SaveAction;
   onDetail: (meal: Meal) => void;
 };
 export function WeeklyMenu({
   data,
-  weekIndex,
-  setWeekIndex,
+  weekStart,
+  setWeekStart,
   isPending,
   save,
   onDetail,
 }: MenuProps) {
   const [historicalSelection, setHistoricalSelection] = useState<{ weekStart: string; revisionId: number; meals: Meal[] } | null>(null);
   const IS_STAFF = (data.user?.role === "staff" || data.user?.role === "manager");
-  const DATES = getDates(data.weeks[weekIndex]);
-  const WEEK_START = data.weeks[weekIndex];
+  const WEEK_START = weekStart;
+  const DATES = getDates(WEEK_START);
   const HISTORICAL_SELECTION = historicalSelection?.weekStart === WEEK_START ? historicalSelection : null;
   const historicalMeals = HISTORICAL_SELECTION?.meals ?? null;
   const historicalRevisionId = HISTORICAL_SELECTION?.revisionId ?? null;
@@ -73,25 +73,25 @@ export function WeeklyMenu({
         <div className="week-control">
           <button
             className="icon-button"
-            disabled={weekIndex === 0}
             aria-label="Předchozí týden"
-            onClick={() => setWeekIndex(weekIndex - 1)}
+            onClick={() => setWeekStart(shiftWeek(WEEK_START, -7))}
           >
             <ChevronLeft size={18} />
           </button>
           <CalendarDays size={19} />
           <h2>{WEEK_LABEL}</h2>
+          <label className="sr-only" htmlFor="menu-date">Vybrat datum</label>
+          <input id="menu-date" aria-label="Vybrat datum" type="date" value={WEEK_START} onChange={(event) => setWeekStart(getWeekStart(event.target.value))} />
           <button
             className="icon-button"
-            disabled={weekIndex === data.weeks.length - 1}
             aria-label="Další týden"
-            onClick={() => setWeekIndex(weekIndex + 1)}
+            onClick={() => setWeekStart(shiftWeek(WEEK_START, 7))}
           >
             <ChevronRight size={18} />
           </button>
         </div>
         <div className="week-meta">
-          {weekIndex === 0 && <span className="this-week">Tento týden</span>}
+          {WEEK_START === getCurrentWeekStart() && <span className="this-week">Tento týden</span>}
           <span>
             {IS_STAFF
               ? `${WEEK_MEALS.length} jídel v nabídce`
@@ -115,14 +115,14 @@ export function WeeklyMenu({
         {DATES.map((date, index) => (
           <section
             key={date}
-            className={`day-column ${date === "2026-09-23" ? "today" : ""}`}
+            className={`day-column ${date === new Date().toISOString().slice(0, 10) ? "today" : ""}`}
             aria-label={DAYS[index]}
           >
             <div className="day-heading">
               <h2>{DAYS[index]}</h2>
               <span>
                 {Number(date.slice(8))}. {Number(date.slice(5, 7))}.
-                {date === "2026-09-23" && <b>Dnes</b>}
+                {date === new Date().toISOString().slice(0, 10) && <b>Dnes</b>}
               </span>
             </div>
             {WEEK_MEALS.filter((meal) => meal.date === date).map((meal) => (
@@ -141,18 +141,19 @@ export function WeeklyMenu({
               {IS_PUBLISHED && <details className="meal-reason"><summary>Proč je tu tohle?</summary><RevisionMealReason revision={ACTIVE_REVISION} meal={meal} /></details>}
               </div>
             ))}
-            {WEEK_MEALS.some((meal) => meal.date === date) ? (
+            {(data.user ? WEEK_MEALS.some((meal) => meal.date === date) : data.mealAvailability[date] === true) ? (
+              data.user ? (
               <div className="soup">
                 <span>
                   <ChefHat size={14} /> Polévka
                 </span>
                 <p>{WEEK_MEALS.find((meal) => meal.date === date)?.soup}</p>
               </div>
+              ) : <div className="holiday"><ChefHat size={30} /><strong>Jídelníček k dispozici</strong></div>
             ) : (
               <div className="holiday">
                 <Leaf size={30} />
-                <strong>Státní svátek</strong>
-                <p>Jídelna nevaří</p>
+                <strong>Jídelníček není k dispozici</strong>
               </div>
             )}
           </section>
@@ -167,7 +168,7 @@ export function WeeklyMenu({
           hlavního jídla
         </span>
       </div>
-      {!IS_STAFF && <MonthOverview meals={data.meals} weekStart={WEEK_START} />}
+      {data.user && !IS_STAFF && <MonthOverview meals={data.meals} weekStart={WEEK_START} />}
       {IS_STAFF && <ConsumerBasketPanel data={data} weekDates={DATES} />}
       <div className="bottom-grid">
         <section className="overview-panel">
@@ -237,6 +238,15 @@ export function WeeklyMenu({
     </>
   );
 }
+
+function getCurrentWeekStart() {
+  const TODAY = new Date();
+  const WEEK_START = new Date(Date.UTC(TODAY.getFullYear(), TODAY.getMonth(), TODAY.getDate()));
+  WEEK_START.setUTCDate(WEEK_START.getUTCDate() - ((WEEK_START.getUTCDay() + 6) % 7));
+  return WEEK_START.toISOString().slice(0, 10);
+}
+function shiftWeek(weekStart: string, days: number) { const DATE = new Date(`${weekStart}T12:00:00Z`); DATE.setUTCDate(DATE.getUTCDate() + days); return DATE.toISOString().slice(0, 10); }
+function getWeekStart(date: string) { const DATE = new Date(`${date}T12:00:00Z`); DATE.setUTCDate(DATE.getUTCDate() - ((DATE.getUTCDay() + 6) % 7)); return DATE.toISOString().slice(0, 10); }
 
 function MonthOverview({ meals, weekStart }: { meals: Meal[]; weekStart: string }) {
   const MONTH = weekStart.slice(0,7);

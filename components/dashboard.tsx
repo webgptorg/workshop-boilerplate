@@ -21,7 +21,12 @@ import { Button } from "./ui/button";
 export function Dashboard({ initialData }: { initialData: AppData }) {
   const [data, setData] = useState(initialData);
   const [view, setView] = useState("menu");
-  const [weekIndex, setWeekIndex] = useState(0);
+  const [weekStart, setWeekStart] = useState(() => {
+    const TODAY = new Date();
+    const WEEK_START = new Date(Date.UTC(TODAY.getFullYear(), TODAY.getMonth(), TODAY.getDate()));
+    WEEK_START.setUTCDate(WEEK_START.getUTCDate() - ((WEEK_START.getUTCDay() + 6) % 7));
+    return WEEK_START.toISOString().slice(0, 10);
+  });
   const [isLoginOpen, setIsLoginOpen] = useState(false);
   const [isHelpOpen, setIsHelpOpen] = useState(false);
   const [activeMeal, setActiveMeal] = useState<Meal | null>(null);
@@ -164,8 +169,8 @@ export function Dashboard({ initialData }: { initialData: AppData }) {
             <>
               <WeeklyMenu
                 data={data}
-                weekIndex={weekIndex}
-                setWeekIndex={setWeekIndex}
+                weekStart={weekStart}
+                setWeekStart={setWeekStart}
                 isPending={isPending}
                 save={save}
                 onDetail={(meal) => {

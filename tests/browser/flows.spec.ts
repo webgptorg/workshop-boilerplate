@@ -28,7 +28,20 @@ test("Parents register with imported diner codes and can switch between their li
 });
 test("Anonymous visitors can read the menu and sign-in does not reveal accounts",async({page})=>{
   await page.goto("/");await expect(page.getByRole("heading",{name:"Týdenní jídelníček"})).toBeVisible();
+  await page.getByLabel("Vybrat datum").fill("2026-09-21");
+  await expect(page.getByText("Jídelníček k dispozici").first()).toBeVisible();
+  await expect(page.getByText("Jídelníček není k dispozici").first()).toBeVisible();
+  const PUBLIC_DATA=await page.evaluate(()=>fetch("/").then(async(response)=>{const HTML=await response.text();return HTML.includes('"meals":[{"id"');}));expect(PUBLIC_DATA).toBe(false);
+  await page.getByLabel("Vybrat datum").fill("2026-09-22");await expect(page.getByText("Jídelníček k dispozici").first()).toBeVisible();
   await openLogin(page);await page.getByLabel("E-mail nebo uživatelské jméno").fill("unknown@example.test");await page.getByLabel("Heslo",{exact:true}).fill("WrongPassword-2026!");await page.getByRole("button",{name:"Přihlásit se",exact:true}).last().click();
   await expect(page.locator(".error-message")).toContainText("Nesprávné přihlašovací údaje");
   const RESPONSE=await page.evaluate(async()=>fetch("/api/action",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({action:"select",mealId:1})}).then((response)=>response.status));expect(RESPONSE).toBe(401);
+});
+test("Logged-in users see meal details and empty dates are not described as holidays",async({page})=>{
+  await page.goto("/");await login(page,"manager@example.test","TestPassword-2026!");
+  await page.getByLabel("Vybrat datum").fill("2026-09-21");
+  await expect(page.getByText("Testovací oběd").first()).toBeVisible();
+  await page.getByLabel("Vybrat datum").fill("2026-09-28");
+  await expect(page.getByText("Jídelníček není k dispozici").first()).toBeVisible();
+  await expect(page.getByText("Státní svátek")).toHaveCount(0);
 });

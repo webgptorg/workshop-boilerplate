@@ -50,13 +50,15 @@ test("Each operating day has exactly two meals; the holiday has none", () => {
 });
 test("Pupil selection is shared with parent and replaced atomically", () => {
   getData(STAFF);
-  assert.equal(getData(null).meals.length, 0, "anonymous visitors cannot read a draft");
+  assert.equal(getData(null).meals.length, 0, "anonymous visitors cannot read meal records");
   mutate(STAFF, { action: "submitWeek", weekStart: "2026-09-21" });
   mutate(STAFF, { action: "approveWeek", weekStart: "2026-09-21" });
   mutate(STAFF, { action: "publishWeek", weekStart: "2026-09-21" });
   const PUBLISHED_DATA = getData(null);
   const PUBLISHED_WEEK = PUBLISHED_DATA.menuWeeks.find((week) => week.weekStart === "2026-09-21");
-  assert.equal(PUBLISHED_DATA.meals.length, 10);
+  assert.equal(PUBLISHED_DATA.meals.length, 0);
+  assert.equal(PUBLISHED_DATA.mealAvailability["2026-09-21"], true);
+  assert.equal(PUBLISHED_DATA.meals.some((meal) => meal.name === "Pečená ryba na zelenině"), false);
   assert.equal(JSON.parse(PUBLISHED_WEEK?.revisions[0].snapshot || "{}").basketResults.status, "missingData");
   mutate(PUPIL, { action: "select", mealId: 1 });
   assert.equal(getData(PARENT).selections["2026-09-21"], 1);
