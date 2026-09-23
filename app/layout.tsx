@@ -2,19 +2,19 @@ import type { Metadata } from "next";
 import { Inter, Outfit } from "next/font/google";
 import "./globals.css";
 
-const INTER = Inter({
+const inter = Inter({
   subsets: ["latin", "latin-ext"],
   variable: "--font-inter",
 });
 
-const OUTFIT = Outfit({
+const outfit = Outfit({
   subsets: ["latin", "latin-ext"],
   variable: "--font-outfit",
 });
 
 export const metadata: Metadata = {
-  title: "Společný stůl | Školní jídelníček",
-  description: "Jídelníček, výběr obědů a náměty pro školní jídelnu.",
+  title: "Promptbook Starter",
+  description: "A Promptbook-branded Next.js starter for practical AI products.",
 };
 
 export default function RootLayout({
@@ -23,8 +23,8 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="cs">
-      <body className={`${INTER.variable} ${OUTFIT.variable}`}>{children}</body>
+    <html lang="en">
+      <body className={`${inter.variable} ${outfit.variable}`}>{children}</body>
     </html>
   );
 }
