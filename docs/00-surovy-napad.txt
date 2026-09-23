@@ -1,0 +1,164 @@
+SUROVY ZAPIS, FAZE 0
+23. 9. 2026, psano pred workshopem. Necesane schvalne. Rozpory uvnitr jsou zamer, ne chyba.
+Skolu, jidelnu ani lidi tady nejmenuju, tenhle soubor jde do repa.
+
+---
+
+CO ME NA TOM STVE
+
+Rodice v tride chteji do skolni jidelny mluvit a jidelna rekla, ze namety bere mailem a zapracuje
+je od ledna nebo unora. Jenze rodic prijde s napadem jidla, ktere chutna jemu a jeho detem. Neprijde
+s jidelnickem. Netusi nic o spotrebnim kosi, o financnim limitu na porci, o tom, ze se to vari pro
+stovky deti v jednom hrnci a ze v utery uz jedno masite jidlo bylo.
+
+Jidelna to musi bud odmitnout, nebo si s tim poradit sama. Odmitnuti bez vysvetleni rodice nastve.
+Zapracovani rucne stoji cas, ktery vedouci nema. Takze se nestane nic a obe strany si o sobe mysli
+svoje.
+
+Chybi tam prekladatel. Neco, co vezme "moje deti miluji spagety" a udela z toho radek v jidelnicku,
+ktery jde uvarit a ktery splnuje pravidla. A pak rodici vysvetli, co s jeho napadem udelalo a proc.
+
+CO CHCI
+
+System, ktery planuje jidelnicek a bere napady rodicu jako vstup, ne jako rusivy element.
+
+Rodic hodi napad, klidne jednou vetou. System z toho udela navrh jidla se surovinami, zasadi ho do
+tydne nebo mesice tak, aby vyslo vsechno ostatni, dopocita zbytek jidelnicku kolem nej a rekne,
+co musel zmenit.
+
+Vystupy jsou dva a mluvi jinym jazykem.
+Pro jidelnu: jidelnicek, ktery jde uvarit, se surovinami a s kontrolou kose a limitu. Podklad
+k odsouhlaseni, ne hotova vec.
+Pro rodice: vysvetleni. Tvuj napad je uvnitr, tenhle tyden, v teto podobe. Puvodne to neslo kvuli
+tomuhle, upravil jsem to takhle, a proto v patek neni sladke.
+
+To druhe je mozna dulezitejsi nez to prvni. Rodic, ktery vidi svuj napad v jidelnicku a chape, proc
+vypada jinak, posle dalsi napad. Rodic, ktery dostane "nelze", uz nenapise nikdy.
+
+CIL
+
+Ne demo a ne kontrolni nastroj. Pouzitelny nastroj na rutinni planovani jidelnicku, kde jidelna
+planuje a rodice do toho prispivaji. Kdyz to vedouci po trech mesicich prestane pouzivat, protoze
+je rychlejsi to napsat rucne, neuspel jsem.
+
+KDO TO POUZIVA
+
+Vedouci jidelny planuje a schvaluje. Je to jeji nastroj, ne nastroj rodicu na ni.
+Rodic prispiva namety a dostava zpetnou vazbu.
+Ja jsem zatim ten, kdo namety sbira. [DOPLN: kdo namety realne sbira a posila, kolik lidi to je]
+
+Poradi je dulezite a musi byt videt i v UI. Neni to system, kterym rodice zadavaji jidelne praci.
+Je to system, ktery vedouci usetri praci a rodicum da odpoved.
+
+JAK TO MA PROBIHAT, HRUBE
+
+1. Prijde namet. Volny text, klidne "carbonara" nebo "delame doma kureci nudlicky s ryzi".
+2. System z toho udela strukturovany navrh: co to je, jake suroviny, kolik cca na porci, jaka
+   prilohy, co to dela s tukem, masem, zeleninou.
+3. Zkusi to zasadit do planovaneho obdobi. Hleda misto, kde to vyjde.
+4. Dopocita zbytek tydne nebo mesice kolem toho tak, aby vysel kos, limit, pestrost a opakovani.
+5. Kdyz to nejde ani po uprave, rekne proc, a nabidne nejblizsi variantu, ktera projde.
+6. Vedouci to vidi, upravi, schvali nebo zahodi.
+7. Rodic dostane vysvetleni, at uz jeho napad prosel nebo ne.
+
+Krok 5 je to, co tenhle system odlisuje od generatoru jidelnicku, kterych je plny internet. Nejdriv
+se snaz napad zapracovat. Zamitnuti az uplne nakonec, a nikdy bez duvodu a bez alternativy.
+
+ODKUD JSOU PRAVIDLA
+
+Vyhlaska o skolnim stravovani, spotrebni kos, financni limity na nakup potravin, k tomu metodiky
+a vyklady, ktere rikaji veci, co v predpisu nejsou.
+
+Kos se letos zasadne zmenil, nova verze plati od zari 2025 a prechodne obdobi skoncilo 1. 9. 2026.
+Pravidla tedy maji verze a system to musi unest, jinak je po prvni novele k nicemu. Zrovna jedna
+prisla.
+
+Mimo vyhlasku jsou provozni pravidla konkretni kuchyne, ktera nikde nejsou napsana. Co umi uvarit
+pro tolik porci, co ma za vybaveni, kolik lidi tam stoji u sporaku, co se da koupit. Tohle bude
+nejtezsi cast a vyhlaska je proti tomu snadna, protoze je aspon sepsana.
+
+CO MUSI PLATIT VZDYCKY
+
+Vedouci ma posledni slovo. System navrhuje, nerozhoduje a nic neposila ven sam.
+Kdyz nema data, rekne to nahlas. Tichy pruchod je horsi nez zamitnuti.
+Nikdy neodmitne napad bez duvodu a bez alternativy.
+Kazda uprava napadu musi byt vysvetlitelna jednou vetou, ktere rozumi rodic.
+Alergeny a bezpecnost nejsou vec modelu. Bud to je v datech, nebo se to netvrdí vubec.
+Kazdy vygenerovany jidelnicek musi jit zpetne obhajit, vcetne verze pravidel, podle ktere vznikl.
+
+CO JE HOTOVO, PRVNI NASTREL
+
+Dam mu jednu vetu od rodice a on vrati navrh tydne, kde to jidlo je, se surovinami.
+Spocita kos a rekne, jak na tom ten tyden je, s cisly po skupinach.
+Kdyz napad nejde zasadit, rekne proc a nabidne upravu, ktera projde.
+Vysvetleni pro rodice je pochopitelne pro cloveka, ktery vyhlasku nikdy nevidel.
+Kdyz chybi gramaze, rekne "odhad" a neprodava to jako presne cislo.
+
+Pet vet. Kdyz tohle plati, je hotovo, zbytek je navic.
+
+DIVOKE NAPADY, NEFILTROVANE
+
+Planovat rovnou mesic, protoze kos se stejne sleduje jako mesicni prumer, a tyden je jen pohled.
+Ucit se z historickych jidelnicku te konkretni jidelny, co skutecne vari, a nenavrhovat nic, co by
+v kuchyni vyvolalo paniku. Navrh, ktery kuchyne neumi, je k nicemu, i kdyby splnoval vsechno.
+Kvota na napady. Kdyz prijde dvacet nametu od dvaceti rodicu, kdo rozhodne, ktery se pouzije?
+Poradnik, hlasovani, rotace po tridach? Tohle neni technicky problem, ale je to problem.
+Banka overenych receptur jidelny jako zaklad, napady rodicu jako varianty nad ni.
+Ukazat rodicum kos vizualne, at vidi, proc nejde sladke jidlo dvakrat tydne.
+Rezim "vysvetli mi tenhle jidelnicek", kdyz uz je zverejneny a nekdo se pta, proc tam neco je.
+Hlasovani deti o tom, ktery z proslych napadu se uvari.
+
+CEHO SE BOJIM
+
+Ze to vedouci vezme tak, ze ji rodice budou planovat praci. Fatalni. Cely nastroj musi byt psany
+z jeji strany, jinak nema smysl to ani zacinat.
+Ze system vygeneruje krasny jidelnicek, ktery kuchyne fyzicky neuvari. Pravidla z vyhlasky umim
+dohledat, provozni omezeni te kuchyne nikoliv.
+Ze bez receptur a gramazi to nejde vubec. U pouheho kontrolora bych se vymluvil na odhady, ale kdyz
+mam generovat, musim vedet, z ceho se to vari. Bud katalog od jidelny, nebo si postavim vlastni
+startovni katalog par desitek jidel s odhadovymi gramazemi a poctive to oznacim jako odhad.
+Ze vysvetleni pro rodice bude znit jako urednik. Pak to nikdo cist nebude.
+Ze si do toho protlacím architekturu, kterou mam v hlave z prace, misto te, kterou tenhle problem
+potrebuje. Na tohle se musim nechat chytit pri oponenture.
+Ze to bude hezke demo bez uzivatele, jako uz par veci.
+
+OTEVRENE OTAZKY, NEODPOVIDAT PREDEM
+
+1. Kos je mesicni prumer, ale planuje a navrhuje se po tydnech. Planuje system tyden, nebo mesic?
+   Co kdyz tyden projde a mesic ne, nebo naopak? Jadro celeho problemu a kazda odpoved dela jiny
+   produkt.
+2. Generuje cely jidelnicek, nebo jen doplnuje kolem toho, co vedouci uz ma? To druhe je mensi,
+   pokornejsi a mozna pouzitelnejsi.
+3. Kdo rozhoduje, ktery napad se pouzije, kdyz jich prijde dvacet.
+4. Co se stane s napadem, ktery je principialne neproveditelny pro ctyri sta porci. Rict rovnou ne,
+   nebo hledat nejblizsi proveditelnou verzi a riskovat, ze rodic svoje jidlo nepozna?
+5. Kde presne je hranice mezi tim, co navrhuje model, a tim, co pocita a rozhoduje deterministicky
+   vypocet. Tusim odpoved a prave proto si ji nemam dopredu napsat.
+6. Ma to vubec generovat, nebo staci, aby to hodnotilo a vysvetlovalo? Generator je efektnejsi.
+   Hodnotic je levnejsi a mozna uzitecnejsi.
+7. Dieta a alergie. Provozni nastroj to nemuze ignorovat navzdy, ale kdyz to vezmu ted, nestihnu nic.
+
+CO VEDOME NERESIM DNES
+
+Mesicni optimalizace. Databaze. UI. Import z jidelnickoveho systemu. Plna alergenova matice. Dietni
+stravovani. Vic vekovych kategorii. Nakup a sklad. Svatky, vylety a dny bez vyuky.
+Dneska staci: jeden namet od rodice, doplneni zbytku tydne z malaho katalogu, vypocet kose,
+vysvetleni.
+
+DATA, KTERA MAM A NEMAM
+
+Mam: text vyhlasky vcetne priloh, starsi zneni pro porovnani, metodiky s prikladovymi jidelnicky,
+stazene realne jidelnicky za nekolik tydnu.
+Nemam: receptury a gramaze na porci, vybaveni a kapacitu kuchyne, pocty stravniku, ceny surovin.
+Mam 6 tydnu stavajícich jidelnicku, polevka a 2 jidla na den.
+Jidelna dnes pouziva iCanteen pro publikaci jidelnicku.
+Zajimaji mne vsechny vekove kategorie, vc dospelych, kteri do te jidelny chodi take - jde o mnozstvi surovin, ktere je treba koupit.
+Je treba delat vlastni receptury, jidelna dnes vari velmi tradicne a receptury nepublikuje.
+
+CIM MERIM, ZE TO K NECEMU JE
+
+Kratkodobe: jeden namet od rodice projde celou cestou az k jidelnicku a vysvetleni, ktere se da
+poslat, aniz bych se za nej stydel.
+Stredne: vedouci rekne, ze ji to usetrilo praci, ne ze ji pribyla.
+Dlouhodobe: rodice posilaji namety opakovane, protoze vidi, ze se s nimi neco deje.
+Kontrolni otazka na prosinec: pouzil jsem to od workshopu aspon dvakrat? Kdyz ne, byla to hracka.
