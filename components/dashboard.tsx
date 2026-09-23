@@ -30,9 +30,10 @@ export function Dashboard({ initialData }: { initialData: AppData }) {
   const [notice, setNotice] = useState("");
   const [error, setError] = useState("");
   const ROLE = data.user?.role || "pupil";
-  const IS_STAFF = ROLE === "staff";
+  const ACTIVE_CANTEEN_ROLES = data.canteens.find((canteen) => canteen.id === data.activeCanteenId)?.roles || data.roles;
+  const IS_STAFF = ROLE === "staff" || ROLE === "manager";
   async function save(body: Record<string, unknown>): Promise<boolean> {
-    if (!data.user && body.action !== "login") {
+    if (!data.user && !["login", "register"].includes(String(body.action))) {
       setIsLoginOpen(true);
       return false;
     }
@@ -49,6 +50,16 @@ export function Dashboard({ initialData }: { initialData: AppData }) {
       if (!RESPONSE.ok) {
         setError(RESULT.error || "Změna se nepodařila.");
         return false;
+      }
+      if (body.action === "exportData") {
+        const EXPORT_BLOB = new Blob([JSON.stringify(RESULT, null, 2)], { type: "application/json" });
+        const DOWNLOAD_URL = URL.createObjectURL(EXPORT_BLOB);
+        const DOWNLOAD_LINK = document.createElement("a");
+        DOWNLOAD_LINK.href = DOWNLOAD_URL;
+        DOWNLOAD_LINK.download = "moje-data-spolecny-stul.json";
+        DOWNLOAD_LINK.click();
+        URL.revokeObjectURL(DOWNLOAD_URL);
+        return true;
       }
       setData(RESULT);
       setActiveMeal(null);
@@ -78,9 +89,10 @@ export function Dashboard({ initialData }: { initialData: AppData }) {
     ...(ROLE === "parent"
       ? [{ id: "preferences", label: "Preference dítěte", icon: Settings2 }]
       : []),
+    ...(data.user ? [{ id: "account", label: "Můj účet", icon: Users }] : []),
   ];
   return (
-    <div className={`app-shell role-${ROLE}`}>
+    <div className={`app-shell role-${ROLE === "manager" ? "staff" : ROLE}`}>
       <Sidebar
         data={data}
         view={view}
@@ -100,17 +112,15 @@ export function Dashboard({ initialData }: { initialData: AppData }) {
             <ChevronRight size={14} />
             {NAVIGATION.find((item) => item.id === view)?.label}
           </span>
-          <button
-            className="role-switch"
-            onClick={() => {
-              setError("");
-              setIsLoginOpen(true);
-            }}
-          >
-            <span className="role-dot" />
-            {ROLE_LABELS[ROLE]}
-            <Users size={16} />
-          </button>
+          {data.user ? (
+            <div className="context-switcher">
+              {data.canteens.length > 1 && <select aria-label="Jídelna" value={data.activeCanteenId ?? ""} onChange={(event) => { const NEXT=data.canteens.find((canteen)=>canteen.id===Number(event.target.value)); const NEXT_ROLE=NEXT?.roles[0] || "parent"; void save({ action:"switchContext", canteenId:Number(event.target.value), role:NEXT_ROLE, dinerId:null }); }}>{data.canteens.map((canteen)=><option key={canteen.id} value={canteen.id}>{canteen.name}</option>)}</select>}
+              {ACTIVE_CANTEEN_ROLES.length > 1 && <label className="sr-only" htmlFor="active-role">Role</label>}
+              {ACTIVE_CANTEEN_ROLES.length > 1 && <select id="active-role" aria-label="Role" value={ROLE} onChange={(event) => { const NEXT_ROLE=event.target.value; void save({ action: "switchContext", role: NEXT_ROLE, dinerId: ["parent","pupil","adult"].includes(NEXT_ROLE) ? data.activeDinerId ?? data.diners[0]?.id ?? null : null }); }}>{ACTIVE_CANTEEN_ROLES.map((role) => <option key={role} value={role}>{ROLE_LABELS[role]}</option>)}</select>}
+              {(["parent","pupil","adult"].includes(ROLE)) && data.diners.length > 1 && <select aria-label="Vybraný strávník" value={data.activeDinerId ?? ""} onChange={(event) => void save({ action: "switchContext", role: ROLE, dinerId: Number(event.target.value) })}>{data.diners.map((diner) => <option key={diner.id} value={diner.id}>{diner.name}{diner.className ? ` · ${diner.className}` : ""}</option>)}</select>}
+              <span className="role-switch"><span className="role-dot" />{ROLE_LABELS[ROLE]}<Users size={16} /></span>
+            </div>
+          ) : <button className="role-switch" onClick={() => setIsLoginOpen(true)}><span className="role-dot" />Přihlásit se<Users size={16} /></button>}
         </header>
         <main>
           <div className="page-heading">
@@ -120,7 +130,7 @@ export function Dashboard({ initialData }: { initialData: AppData }) {
                 {IS_STAFF
                   ? "SPRÁVA JÍDELNY"
                   : ROLE === "parent"
-                    ? "ADAM NOVÁK · 6. B"
+                    ? `${data.diners.find((diner) => diner.id === data.activeDinerId)?.name || "STRÁVNÍK"}${data.diners.find((diner) => diner.id === data.activeDinerId)?.className ? ` · ${data.diners.find((diner) => diner.id === data.activeDinerId)?.className}` : ""}`
                     : "ŠKOLNÍ JÍDELNA"}
               </div>
               <h1>
@@ -194,7 +204,7 @@ export function Dashboard({ initialData }: { initialData: AppData }) {
               {error}
             </p>
           )}
-          <LoginForm onSave={save} isPending={isPending} />
+          <LoginForm onSave={save} isPending={isPending} isDemoMode={data.isDemoMode} />
         </Dialog>
       )}
       {activeMeal && (

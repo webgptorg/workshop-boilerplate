@@ -3,6 +3,7 @@ import { Planner } from "./planner";
 import { Button } from "./ui/button";
 import type { AppData } from "@/lib/types";
 import type { SaveAction } from "./forms";
+import { AccountPanel } from "./account";
 export function Community({
   data,
   view,
@@ -14,11 +15,12 @@ export function Community({
   onSave: SaveAction;
   isPending: boolean;
 }) {
-  const IS_STAFF = data.user?.role === "staff";
+  const IS_STAFF = (data.user?.role === "staff" || data.user?.role === "manager");
+  if (view === "account") return <AccountPanel data={data} onSave={onSave} isPending={isPending} />;
   if (view === "preferences")
     return (
       <section className="content-panel">
-        <p className="child-name">Adam Novák · 6. B</p>
+        <p className="child-name">{data.diners.find((diner) => diner.id === data.activeDinerId)?.name}{data.diners.find((diner) => diner.id === data.activeDinerId)?.className ? ` · ${data.diners.find((diner) => diner.id === data.activeDinerId)?.className}` : ""}</p>
         <form
           onSubmit={(event) => {
             event.preventDefault();
@@ -37,8 +39,8 @@ export function Community({
             />
           </label>
           <p className="form-note">
-            Preference vidí jídelna. Nejde o objednávku diety ani potvrzení
-            vhodnosti jídla při alergii.
+            Preference vidí jídelna. Nenahrazují oficiální postup jídelny pro
+            dietní stravování a alergie.
           </p>
           <Button type="submit" disabled={isPending}>
             Uložit preference

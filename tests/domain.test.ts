@@ -5,25 +5,36 @@ import { tmpdir } from "node:os";
 import { join } from "node:path";
 const DIRECTORY = mkdtempSync(join(tmpdir(), "stul-test-"));
 process.env.DATABASE_DIRECTORY = DIRECTORY;
+process.env.IS_DEMO_MODE = "true";
 const { DATABASE, getData } = await import("../lib/database");
 const { mutate } = await import("../lib/mutations");
 const { proposeMeal } = await import("../lib/planner");
-const PUPIL = { id: 1, role: "pupil" as const, name: "Adam", username: "adam" };
+const { verifyPassword } = await import("../lib/security");
+const PUPIL = { id: 1, role: "pupil" as const, name: "Adam", username: "adam", canteenId: 1, dinerId: 1, roles: ["pupil"] as ("pupil"|"adult"|"parent"|"staff"|"manager")[] };
 const STAFF = {
   id: 2,
   role: "staff" as const,
   name: "Jana",
   username: "jidelna",
+  canteenId: 1, dinerId: null, roles: ["manager", "staff"] as ("pupil"|"adult"|"parent"|"staff"|"manager")[],
 };
 const PARENT = {
   id: 3,
   role: "parent" as const,
   name: "Petra",
   username: "petra",
+  canteenId: 1, dinerId: 1, roles: ["parent"] as ("pupil"|"adult"|"parent"|"staff"|"manager")[],
 };
 after(() => {
   DATABASE.close();
   rmSync(DIRECTORY, { recursive: true, force: true });
+});
+test("Demo manager exists only in demo mode and has a scrypt password hash", async () => {
+  const ADMIN = DATABASE.prepare("SELECT id,password_hash FROM users WHERE username='admin'").get() as { id: number; password_hash: string } | undefined;
+  assert.ok(ADMIN);
+  assert.match(ADMIN.password_hash, /^scrypt\$/);
+  assert.equal(await verifyPassword("admin", ADMIN.password_hash), true);
+  assert.ok(DATABASE.prepare("SELECT 1 FROM user_roles WHERE user_id=? AND role='manager'").get(ADMIN.id));
 });
 test("Each operating day has exactly two meals; the holiday has none", () => {
   const DATA = getData(null);

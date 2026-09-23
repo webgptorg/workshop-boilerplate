@@ -221,3 +221,13 @@ dd {
   line-height: 1.8;
   margin-bottom: 15px;
 }
+.account-panel { display: grid; gap: 16px; }
+.account-actions, .linked-diner { display: flex; flex-wrap: wrap; align-items: center; gap: 10px; }
+.linked-diner { justify-content: space-between; border-top: 1px solid var(--line); padding: 14px 0; }
+.linked-diner form { display: flex; flex-wrap: wrap; align-items: end; gap: 10px; }
+.managed-diner, .audit-entry { display: grid; gap: 10px; border-top: 1px solid var(--line); padding: 14px 0; }
+.managed-diner form { display: flex; flex-wrap: wrap; align-items: end; gap: 10px; }
+.audit-entry { grid-template-columns: auto 1fr; align-items: baseline; }
+.audit-entry small { grid-column: 2; }
+.managed-role { display: inline-flex; align-items: center; gap: 6px; margin-right: 8px; padding: 4px 8px; border-radius: 12px; background: var(--tint); color: var(--accent); }
+.managed-role button { border: 0; background: transparent; color: inherit; cursor: pointer; font: inherit; }

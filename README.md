@@ -9,15 +9,11 @@ npm ci
 npm run dev
 ```
 
-Otevřete http://localhost:3000. Jídelníček je dostupný bez přihlášení; uložení změn vyžaduje účet. Přihlášení otevřete tlačítkem role vpravo nahoře.
+Otevřete http://localhost:3000. Menu lze číst bez přihlášení. Účet rodiče vzniká s párovacím kódem; zaměstnanec se připojí jednorázovou pozvánkou. Pro ukázková data a čtyři testovací účty spusťte server s `IS_DEMO_MODE=true`. V tomto režimu lze použít také vedoucí účet `admin` s heslem `admin`; další účty jsou `adam` / `adam123`, `jidelna` / `jidelna123` a `petra` / `petra123`. V běžném režimu se žádný z těchto účtů ani hesel nevytváří.
 
-| Role | Uživatel | Heslo |
-| --- | --- | --- |
-| Žák — Adam Novák | `adam` | `adam123` |
-| Jídelna — Jana Veselá | `jidelna` | `jidelna123` |
-| Rodič — Petra Nováková | `petra` | `petra123` |
+První jídelnu a jejího vedoucího založí `npm run admin -- create-canteen <název> <jméno-vedoucího> <e-mail> <heslo>`. Import jídelníčkového CSV nejprve zobrazí náhled; změny potvrďte přepínačem `--confirm`: `npm run admin -- import-diners export.csv --canteen=1 --confirm`. Import připraví HTML archy párovacích dopisů s QR kódy. CSV potřebuje sloupce pro číslo strávníka a jméno; lze dodat také třídu a typ.
 
-Jde o veřejné ukázkové účty, nikoli skutečné přístupové údaje. Ukázka obsahuje tři týdny od 21. září 2026. Dne 28. září je jídelna zavřená.
+Databáze zachovává předchozí SQLite data a převádí je verzovanou migrací při startu. Ukázkový jídelníček obsahuje týdny od 21. září 2026; dne 28. září je jídelna zavřená.
 
 ## Funkce
 
@@ -29,9 +25,7 @@ Jde o veřejné ukázkové účty, nikoli skutečné přístupové údaje. Ukáz
 
 ## Data a provoz
 
-Databáze `data/spolecny-stul.sqlite` vznikne a naplní se při prvním spuštění. Soubory databáze jsou ignorovány Gitem. Vlastní adresář nastaví `DATABASE_DIRECTORY`. Pro nasazení je nutný Node server se zapisovatelným persistentním diskem; statický export ani dočasný serverless disk nestačí. Zálohujte SQLite včetně souvisejícího WAL nebo pomocí SQLite backup.
-
-Relace používají náhodný token a HttpOnly cookie s expirací 24 hodin. Role a vstupy ověřuje server. Pro veřejný ostrý provoz jsou potřeba reálná správa účtů, ochrana proti hádání hesel, více škol a audit revizí. Ukázková hesla jsou záměrně veřejná.
+Databáze `data/spolecny-stul.sqlite` se vytváří při spuštění. Soubory databáze jsou ignorovány Gitem. Vlastní adresář nastaví `DATABASE_DIRECTORY`. Pro nasazení je nutný Node server se zapisovatelným persistentním diskem; statický export ani dočasný serverless disk nestačí. Zálohujte SQLite včetně souvisejícího WAL nebo pomocí SQLite backup. Hesla se ukládají jako `scrypt` hashe. Náhodné session, obnovovací, invitační a párovací tokeny se ukládají jako hashe; session cookie je `HttpOnly` a platí 30 dní. Rate limit chrání přihlašování, obnovu hesla, registraci a použití kódů. V developmentu a testech se e-maily tisknou do konzole; v produkci nastavte `EMAIL_WEBHOOK_URL` a `EMAIL_WEBHOOK_TOKEN` pro e-mailovou službu.
 
 ## Kontroly
 
@@ -41,7 +35,7 @@ npm run check
 npm run build
 ```
 
-`check` zahrnuje ESLint, TypeScript, doménové testy, produkční build a Playwright průchody rolemi i mobilní rozhraní. Testy používají vlastní dočasné databáze a produkční testovací server na portu 3101. Na Linuxu lze doinstalovat prohlížeč příkazem `npx playwright install --with-deps chromium`.
+`check` zahrnuje ESLint, TypeScript, doménové testy, produkční build a Playwright průchody. Testy používají vlastní dočasné databáze a testovací server na portu 3101. Na Linuxu lze doinstalovat prohlížeč příkazem `npx playwright install --with-deps chromium`.
 
 ## Podklady a hranice verze
 

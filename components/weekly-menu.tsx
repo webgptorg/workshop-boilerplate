@@ -48,7 +48,7 @@ export function WeeklyMenu({
   save,
   onDetail,
 }: MenuProps) {
-  const IS_STAFF = data.user?.role === "staff";
+  const IS_STAFF = (data.user?.role === "staff" || data.user?.role === "manager");
   const DATES = getDates(data.weeks[weekIndex]);
   const WEEK_MEALS = data.meals.filter((meal) => DATES.includes(meal.date));
   const SELECTED_COUNT = DATES.filter((date) => data.selections[date]).length;
@@ -187,11 +187,11 @@ export function WeeklyMenu({
                 Spotřební koš: <strong>nelze vyhodnotit</strong>
               </p>
               <p>Chybí gramáže, počty porcí, ceny a měsíční výdejky.</p>
-              {data.preferences && (
-                <p>
-                  <strong>Preference Adama:</strong> {data.preferences}
+              {data.preferencesList.map((preference) => (
+                <p key={preference.dinerName}>
+                  <strong>{preference.dinerName}:</strong> {preference.text}
                 </p>
-              )}
+              ))}
             </>
           ) : (
             <>
@@ -201,7 +201,7 @@ export function WeeklyMenu({
               </div>
               <div className="info-line">
                 <span>Strávník</span>
-                <strong>Adam Novák · 6. B</strong>
+                <strong>{data.diners.find((diner) => diner.id === data.activeDinerId)?.name || "Vyberte strávníka"}{data.diners.find((diner) => diner.id === data.activeDinerId)?.className ? ` · ${data.diners.find((diner) => diner.id === data.activeDinerId)?.className}` : ""}</strong>
               </div>
               <p className="panel-note">
                 Výběr v této ukázce se nepřenáší do iCanteen.

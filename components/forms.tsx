@@ -8,13 +8,18 @@ export type SaveAction = (body: Record<string, unknown>) => Promise<boolean>;
 export function LoginForm({
   onSave,
   isPending,
+  isDemoMode,
 }: {
   onSave: SaveAction;
   isPending: boolean;
+  isDemoMode: boolean;
 }) {
-  const [username, setUsername] = useState("adam");
-  const [password, setPassword] = useState("adam123");
-  const ACCOUNTS = [
+  const [username, setUsername] = useState("");
+  const [password, setPassword] = useState("");
+  const [isRegistration, setIsRegistration] = useState(false);
+  const [isResetRequest, setIsResetRequest] = useState(false);
+  const DEMO_ACCOUNTS = [
+    { name: "Vedoucí · admin", username: "admin", password: "admin" },
     { name: "Adam · žák", username: "adam", password: "adam123" },
     { name: "Jana · jídelna", username: "jidelna", password: "jidelna123" },
     { name: "Petra · rodič", username: "petra", password: "petra123" },
@@ -23,49 +28,42 @@ export function LoginForm({
     <form
       onSubmit={(event) => {
         event.preventDefault();
-        void onSave({ action: "login", username, password });
+        const FIELDS = Object.fromEntries(new FormData(event.currentTarget));
+        void onSave({ action: isResetRequest ? "requestReset" : isRegistration ? "register" : "login", ...FIELDS, username, password });
       }}
     >
-      <div className="account-options">
-        {ACCOUNTS.map((account) => (
-          <button
-            type="button"
-            className={username === account.username ? "active" : ""}
-            key={account.username}
-            onClick={() => {
-              setUsername(account.username);
-              setPassword(account.password);
-            }}
-          >
-            {account.name}
-          </button>
-        ))}
-      </div>
+      {isDemoMode && !isRegistration && !isResetRequest && <div className="account-options">{DEMO_ACCOUNTS.map((account)=><button type="button" key={account.username} onClick={()=>{setUsername(account.username);setPassword(account.password);}}>{account.name}</button>)}</div>}
+      {isRegistration && <label>Jméno<input name="name" autoComplete="name" required /></label>}
+      {isRegistration && <label>Párovací kód dítěte<input name="code" autoComplete="off" required /></label>}
       <label>
-        Uživatelské jméno
+        {isRegistration || isResetRequest ? "E-mail" : "E-mail nebo uživatelské jméno"}
         <input
-          autoComplete="username"
+          name={isRegistration || isResetRequest ? "email" : "username"}
+          type={isRegistration || isResetRequest ? "email" : "text"}
+          autoComplete={isRegistration ? "email" : "username"}
           value={username}
           onChange={(event) => setUsername(event.target.value)}
           required
         />
       </label>
-      <label>
+      {!isResetRequest && <label>
         Heslo
         <input
           autoComplete="current-password"
           type="password"
+          minLength={isRegistration ? 12 : undefined}
           value={password}
           onChange={(event) => setPassword(event.target.value)}
           required
         />
-      </label>
-      <p className="form-note">
-        Ukázkové účty: adam / adam123, jidelna / jidelna123, petra / petra123.
-      </p>
+      </label>}
+      {isRegistration && <p className="form-note">Pro registraci potřebujete párovací kód od jídelny.</p>}
+      {isResetRequest && <p className="form-note">Pokud je účet spojený s e-mailem, pošleme odkaz k obnově.</p>}
       <Button type="submit" disabled={isPending}>
-        Přihlásit se
+        {isResetRequest ? "Poslat odkaz" : isRegistration ? "Vytvořit účet" : "Přihlásit se"}
       </Button>
+      {!isResetRequest && <button type="button" className="text-button" onClick={() => setIsRegistration(!isRegistration)}>{isRegistration ? "Už mám účet" : "Registrovat rodiče s kódem"}</button>}
+      {!isRegistration && <button type="button" className="text-button" onClick={() => setIsResetRequest(!isResetRequest)}>{isResetRequest?"Zpět na přihlášení":"Zapomenuté heslo"}</button>}
     </form>
   );
 }
@@ -81,7 +79,7 @@ export function MealForm({
   isPending: boolean;
 }) {
   const [rating, setRating] = useState(4);
-  const IS_STAFF = role === "staff";
+  const IS_STAFF = role === "staff" || role === "manager";
   return (
     <form
       onSubmit={(event) => {
