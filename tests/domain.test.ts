@@ -47,6 +47,12 @@ test("Each operating day has exactly two meals; the holiday has none", () => {
     DATA.meals.filter((meal) => meal.date === "2026-09-28").length,
     0,
   );
+  for (const MEAL of DATA.meals) {
+    assert.ok(MEAL.icon, `${MEAL.name} has a meal icon`);
+    assert.ok(MEAL.ingredients, `${MEAL.name} has ingredient details`);
+    assert.ok(MEAL.allergens, `${MEAL.name} has allergen information`);
+  }
+  assert.deepEqual(DATA.roles, []);
 });
 test("Pupil selection is shared with parent and replaced atomically", () => {
   getData(STAFF);
