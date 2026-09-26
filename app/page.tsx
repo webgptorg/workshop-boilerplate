@@ -1,26 +1,7 @@
-import { PromptbookBrand } from "@/components/promptbook-brand";
+import { Workspace } from "@/components/workspace";
+
+export const dynamic = "force-dynamic";
 
 export default function Home() {
-  return (
-    <div className="site-shell">
-      <header className="site-header">
-        <div className="container header-inner">
-          <PromptbookBrand />
-          <nav className="header-nav" aria-label="Main navigation">
-            <a href="https://www.ptbk.io/">ptbk.io</a>
-            <a href="https://github.com/webgptorg/boilerplate">GitHub ↗</a>
-          </nav>
-        </div>
-      </header>
-
-      <main className="main-content" />
-
-      <footer className="site-footer">
-        <div className="container footer-inner">
-          <PromptbookBrand />
-          <span>Promptbook · 2026</span>
-        </div>
-      </footer>
-    </div>
-  );
+  return <Workspace today={new Date().toISOString()} />;
 }
