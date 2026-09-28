@@ -27,12 +27,6 @@
 .main-nav a.active { color: #a5e4ec; background: #2a3e48; border-color: #b2f0fc0a; }
 .nav-count { min-width: 21px; text-align: center; color: #a8b5c6; background: #ffffff0d; font-size: 9px; border-radius: 4px; padding: 1px 5px; }
 .sidebar-spacer { flex: 1; min-height: 62px; }
-.sidebar-note { position: relative; background: linear-gradient(135deg, #263843, #252d3e); border: 1px solid #354450; border-radius: 9px; padding: 17px 16px 13px; overflow: hidden; margin: 0 3px 27px; }
-.sidebar-note-icon { color: #9ae2eb; margin-bottom: 10px; }
-.sidebar-note h3 { color: #e1ebed; font-size: 13px; font-weight: 500; line-height: 1.6; margin-bottom: 8px; }
-.sidebar-note p { color: #909daf; font-size: 10px; line-height: 1.8; max-width: 160px; }
-.note-wave { height: 30px; display: flex; align-items: center; gap: 3px; margin-top: 14px; opacity: .5; }
-.note-wave i { width: 3px; border-radius: 3px; background: linear-gradient(#78b9c5, #3d6170); }
 .sidebar-bottom-links { display: grid; gap: 2px; padding-bottom: 21px; }
 .sidebar-bottom-links > button, .sidebar-bottom-links > a { display: flex; align-items: center; gap: 11px; color: #9ba5b6; padding: 9px 14px; font-size: 10px; background: transparent; text-align: left; border-radius: 5px; }
 .sidebar-bottom-links > button:hover, .sidebar-bottom-links > a:hover, .sidebar-bottom-links .active { color: #a9e3ec; background: #ffffff06; }

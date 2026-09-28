@@ -13,7 +13,6 @@ import {
   ListTodo,
   Plus,
   Settings2,
-  Sparkles,
   X,
 } from "lucide-react";
 import { useMinute } from "./minute-provider";
@@ -117,22 +116,6 @@ export function Sidebar({
           ))}
         </nav>
         <div className="sidebar-spacer" />
-        <div className="sidebar-note">
-          <div className="sidebar-note-icon">
-            <Sparkles size={18} />
-          </div>
-          <h3>
-            {t("Less note-taking.", "Méně zapisování.")}
-            <br />
-            {t("More being there.", "Více přítomnosti.")}
-          </h3>
-          <p>{t("Your conversations, captured. Your next steps, clear.", "Rozhovory zaznamenané. Další kroky jasné.")}</p>
-          <span className="note-wave" aria-hidden="true">
-            {Array.from({ length: 27 }, (_, i) => (
-              <i key={i} style={{ height: `${6 + Math.sin(i * 0.8) ** 2 * 21}px` }} />
-            ))}
-          </span>
-        </div>
         <div className="sidebar-bottom-links">
           <InstallButton icon={Download} />
           <button onClick={onHelp}>
