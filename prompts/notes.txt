@@ -1,0 +1,9 @@
+[-] - Znamená, že se na téhle věci ještě nebude dělat. 
+      Pokud v rámci daného PRD ještě @@@. Znamená to to samé, že se na téhle věci ještě nebude dělat, protože je sem potřeba něco dopsat. 
+[ ] - Připraveno pro implementaci. 
+[ ] ! - Připraveno pro implementaci s vyšší prioritou.
+[ ] !! - Připraveno pro implementaci s ještě vyšší prioritou.
+[ ] !!!!!!!!!!!! - Připraveno pro implementaci s ještě ještě vyšší prioritou.
+[^] - Právě probíhá práce. 
+[x] - Dokončeno. 
+[!] - Selhalo. 
