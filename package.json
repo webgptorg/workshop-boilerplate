@@ -8,13 +8,12 @@
     "start": "next start",
     "lint": "eslint .",
     "typecheck": "tsc --noEmit",
-    "check": "npm run lint && npm run typecheck",
+    "check": "npm run lint && npm run typecheck && npm run test && npm run build",
     "test": "tsx --test tests/*.test.ts",
     "coder:generate-boilerplates": "npx ptbk coder generate-boilerplates --count 5*1 --template ./prompts/templates/common.md",
     "coder:add": "npx ptbk coder add --template ./prompts/templates/common.md",
-    "coder:run": "npx ptbk coder run --harness openai-codex --thinking-level max --agent agents/developer.book --context AGENTS.md --test \"npm run test-for-ptbk-coder\" --test-before yes-and-fix",
-    "coder:verify": "npx ptbk coder verify",
-    "test-for-ptbk-coder": "npm test"
+    "coder:run": "npx ptbk coder run --no-questions --harness openai-codex --model gpt-6-luna --thinking-level high --agent agents/developer.book --context AGENTS.md --test npm run check --test-before yes-and-fail",
+    "coder:verify": "npx ptbk coder verify"
   },
   "dependencies": {
     "lucide-react": "^1.48.0",
