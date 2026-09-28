@@ -13,6 +13,8 @@ This repository is a small Promptbook-branded Next.js starter. Keep it understan
 - Keep line endings LF.
 - Keep changes small and the Git history linear where practical.
 - Start microphone recording only after an explicit user action. Opening or reloading a studio URL alone must not request access.
+- Add new numbered SQL migrations for schema changes; never edit an applied migration. Keep RLS enabled and test ownership policies for every new table and Storage path.
+- Keep account identity from Supabase Auth. Do not trust a user ID supplied by the browser for authorization, and do not expose the database connection string or a service-role key.
 
 ## Before finishing
 

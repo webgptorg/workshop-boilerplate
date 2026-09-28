@@ -90,3 +90,12 @@
 .not-found > span { font-size: 70px; color: var(--accent); font-weight: 600; letter-spacing: -4px; }
 .not-found h1 { margin: 10px 0 16px; }
 .not-found p { color: var(--muted); margin-bottom: 25px; }
+
+.auth-screen { min-height: 100vh; display: grid; place-items: center; padding: 24px; }
+.auth-card { width: min(100%, 390px); display: grid; gap: 16px; padding: 32px; background: var(--surface); border: 1px solid var(--border); border-radius: 18px; box-shadow: var(--shadow); }
+.auth-card .field-label { display: grid; gap: 6px; }
+.auth-card input { width: 100%; padding: 10px 12px; background: var(--background); border: 1px solid var(--border); border-radius: 8px; color: var(--ink); }
+.auth-brand { font: 600 28px var(--font-outfit), sans-serif; }
+.auth-card > p { color: var(--secondary); }
+.auth-card .auth-message { color: var(--danger); }
+.auth-switch { background: transparent; color: var(--teal); text-align: center; }

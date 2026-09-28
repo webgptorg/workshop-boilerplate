@@ -2,7 +2,8 @@
 
 import { createContext, useCallback, useContext, useEffect, useRef, useState } from "react";
 import { CheckCircle2, X } from "lucide-react";
-import { initializeStore, takeStorageError, useAppState } from "@/lib/store";
+import { initializeStore, readStorageError, takeStorageError, useAppState, useStoreStatus } from "@/lib/store";
+import { AuthScreen } from "./auth-screen";
 import type { AppState } from "@/lib/types";
 
 interface MinuteContextValue {
@@ -15,6 +16,7 @@ const MinuteContext = createContext<MinuteContextValue | null>(null);
 
 export function MinuteProvider({ children }: { children: React.ReactNode }) {
   const state = useAppState();
+  const status = useStoreStatus();
   const [toast, setToast] = useState("");
   const timer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const notify = useCallback((message: string) => {
@@ -31,7 +33,7 @@ export function MinuteProvider({ children }: { children: React.ReactNode }) {
   }, []);
 
   useEffect(() => {
-    if (!state) return;
+    if (!state || status !== "ready") return;
     const query = window.matchMedia("(prefers-color-scheme: dark)");
     const apply = () => {
       document.documentElement.dataset.theme = state.user.theme === "system" ? (query.matches ? "dark" : "light") : state.user.theme;
@@ -42,7 +44,7 @@ export function MinuteProvider({ children }: { children: React.ReactNode }) {
     const message = takeStorageError();
     if (message) queueMicrotask(() => notify(message));
     return () => query.removeEventListener("change", apply);
-  }, [state, notify]);
+  }, [state, status, notify]);
 
   useEffect(() => {
     if ("serviceWorker" in navigator && process.env.NODE_ENV === "production") {
@@ -53,6 +55,8 @@ export function MinuteProvider({ children }: { children: React.ReactNode }) {
   }, []);
 
   const t = useCallback((english: string, czech: string) => (state?.user.language === "cs" ? czech : english), [state?.user.language]);
+
+  if (status === "signed-out" || status === "error") return <AuthScreen error={status === "error" ? readStorageError() : undefined} />;
 
   if (!state)
     return (

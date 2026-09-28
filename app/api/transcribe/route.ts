@@ -5,7 +5,7 @@ export const runtime = "nodejs";
 export const maxDuration = 120;
 
 export async function POST(request: Request) {
-  const blocked = guardRequest(request);
+  const blocked = await guardRequest(request);
   if (blocked) return blocked;
   if (!process.env.OPENAI_API_KEY) return NextResponse.json({ error: "not_configured" }, { status: 503 });
   if (Number(request.headers.get("content-length")) > 26 * 1024 * 1024)

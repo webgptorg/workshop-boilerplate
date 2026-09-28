@@ -1,50 +1,37 @@
-function openDatabase(): Promise<IDBDatabase> {
-  return new Promise((resolve, reject) => {
-    const request = indexedDB.open("minute-media", 1);
-    request.onupgradeneeded = () => request.result.createObjectStore("recordings");
-    request.onsuccess = () => resolve(request.result);
-    request.onerror = () => reject(new Error("Could not open recording storage."));
-  });
+"use client";
+
+import { createClient } from "./supabase/client";
+
+const RECORDINGS_BUCKET = "recordings";
+
+async function recordingPath(id: string) {
+  const { data, error } = await createClient().auth.getUser();
+  if (error || !data.user) throw new Error("Sign in to access recordings.");
+  return `${data.user.id}/${id}`;
 }
 
 export async function saveRecording(id: string, blob: Blob) {
-  const database = await openDatabase();
-  try {
-    await new Promise<void>((resolve, reject) => {
-      const transaction = database.transaction("recordings", "readwrite");
-      transaction.objectStore("recordings").put(blob, id);
-      transaction.oncomplete = () => resolve();
-      transaction.onerror = () => reject(new Error("Could not save the recording. Check your device storage."));
-      transaction.onabort = () => reject(new Error("Recording storage was interrupted."));
-    });
-  } finally {
-    database.close();
-  }
+  const path = await recordingPath(id);
+  const { error } = await createClient().storage.from(RECORDINGS_BUCKET).upload(path, blob, {
+    contentType: blob.type || "application/octet-stream",
+    upsert: false,
+  });
+  if (error) throw new Error(`Could not save the recording: ${error.message}`);
 }
 
 export async function getRecording(id: string): Promise<Blob | undefined> {
-  const database = await openDatabase();
-  try {
-    return await new Promise((resolve, reject) => {
-      const request = database.transaction("recordings").objectStore("recordings").get(id);
-      request.onsuccess = () => resolve(request.result);
-      request.onerror = () => reject(new Error("Could not load the recording."));
-    });
-  } finally {
-    database.close();
+  const path = await recordingPath(id);
+  const { data, error } = await createClient().storage.from(RECORDINGS_BUCKET).download(path);
+  if (error) {
+    if (error.message.includes("not found") || error.message.includes("Not Found")) return undefined;
+    throw new Error(`Could not load the recording: ${error.message}`);
   }
+  return data;
 }
 
 export async function deleteRecordings(ids: string[]) {
-  const database = await openDatabase();
-  try {
-    await new Promise<void>((resolve, reject) => {
-      const transaction = database.transaction("recordings", "readwrite");
-      ids.forEach((id) => transaction.objectStore("recordings").delete(id));
-      transaction.oncomplete = () => resolve();
-      transaction.onerror = () => reject(new Error("Could not remove recording files."));
-    });
-  } finally {
-    database.close();
-  }
+  if (!ids.length) return;
+  const paths = await Promise.all(ids.map(recordingPath));
+  const { error } = await createClient().storage.from(RECORDINGS_BUCKET).remove(paths);
+  if (error) throw new Error(`Could not delete recordings: ${error.message}`);
 }
