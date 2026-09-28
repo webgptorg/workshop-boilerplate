@@ -1,6 +1,6 @@
 {
-  "name": "promptbook-starter",
-  "version": "0.1.0",
+  "name": "minute",
+  "version": "1.0.0",
   "private": true,
   "scripts": {
     "dev": "next dev",
@@ -8,19 +8,23 @@
     "start": "next start",
     "lint": "eslint .",
     "typecheck": "tsc --noEmit",
-    "check": "npm run lint && npm run typecheck"
+    "check": "npm run lint && npm run typecheck",
+    "test": "tsx --test tests/*.test.ts"
   },
   "dependencies": {
-    "next": "latest",
+    "lucide-react": "^1.48.0",
+    "next": "^16.3.6",
     "react": "latest",
-    "react-dom": "latest"
+    "react-dom": "latest",
+    "react-markdown": "^10.1.0"
   },
   "devDependencies": {
     "@types/node": "latest",
     "@types/react": "latest",
     "@types/react-dom": "latest",
     "eslint": "latest",
-    "eslint-config-next": "latest",
+    "eslint-config-next": "^16.3.6",
+    "tsx": "^4.23.15",
     "typescript": "latest"
   }
 }

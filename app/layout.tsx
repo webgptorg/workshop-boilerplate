@@ -1,5 +1,6 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import { Inter, Outfit } from "next/font/google";
+import { MinuteProvider } from "@/components/minute-provider";
 import "./globals.css";
 
 const inter = Inter({
@@ -13,8 +14,21 @@ const outfit = Outfit({
 });
 
 export const metadata: Metadata = {
-  title: "Promptbook Starter",
-  description: "A Promptbook-branded Next.js starter for practical AI products.",
+  title: "Minute — Good conversations. Clear next steps.",
+  description: "Be present. Minute records your meetings, captures the details, and turns conversations into clear next steps.",
+  applicationName: "Minute",
+  manifest: "/manifest.webmanifest",
+  appleWebApp: { capable: true, statusBarStyle: "default", title: "Minute" },
+  icons: { icon: "/icon.svg", apple: "/icons/apple-touch-icon.png" },
+};
+
+export const viewport: Viewport = {
+  width: "device-width",
+  initialScale: 1,
+  themeColor: [
+    { media: "(prefers-color-scheme: light)", color: "#f7f9fb" },
+    { media: "(prefers-color-scheme: dark)", color: "#181e2b" },
+  ],
 };
 
 export default function RootLayout({
@@ -24,7 +38,9 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
-      <body className={`${inter.variable} ${outfit.variable}`}>{children}</body>
+      <body className={`${inter.variable} ${outfit.variable}`}>
+        <MinuteProvider>{children}</MinuteProvider>
+      </body>
     </html>
   );
 }
