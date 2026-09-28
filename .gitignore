@@ -10,3 +10,14 @@ yarn-error.log*
 pnpm-debug.log*
 .DS_Store
 *.tsbuildinfo
+
+# Promptbook Coder
+/.promptbook
+.env
+.codex
+.github/copilot/settings.local.json
+.cline
+.claude
+.opencode
+.gemini
+.qwen
