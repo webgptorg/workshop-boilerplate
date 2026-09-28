@@ -1,0 +1,1 @@
+Create an app for recording meetings, which can record a meeting and create a note summary and to-dos from this meeting. This app will be called "Minute".
