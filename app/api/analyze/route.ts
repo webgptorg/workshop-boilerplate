@@ -34,7 +34,7 @@ function isAnalysis(value: unknown): value is MeetingAnalysis {
 }
 
 export async function POST(request: Request) {
-  const blocked = await guardRequest(request);
+  const blocked = guardRequest(request);
   if (blocked) return blocked;
   if (!process.env.OPENAI_API_KEY) return NextResponse.json({ error: "not_configured" }, { status: 503 });
   if (Number(request.headers.get("content-length")) > 250_000) return NextResponse.json({ error: "transcript_too_long" }, { status: 413 });

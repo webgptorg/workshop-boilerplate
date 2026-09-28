@@ -1,16 +1,15 @@
 import { NextResponse } from "next/server";
-import { createClient } from "./supabase/server";
 
-export async function guardRequest(request: Request) {
+const requests = new Map<string, { count: number; reset: number }>();
+
+export function guardRequest(request: Request) {
   const origin = request.headers.get("origin");
   if (origin && origin !== new URL(request.url).origin) return NextResponse.json({ error: "origin" }, { status: 403 });
-  if (!process.env.NEXT_PUBLIC_SUPABASE_URL || !process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY)
-    return NextResponse.json({ error: "not_configured" }, { status: 503 });
-  const supabase = await createClient();
-  const { data, error } = await supabase.auth.getClaims();
-  if (error || !data?.claims?.sub) return NextResponse.json({ error: "unauthorized" }, { status: 401 });
-  const quota = await supabase.rpc("consume_ai_quota");
-  if (quota.error) return NextResponse.json({ error: "quota_unavailable" }, { status: 503 });
-  if (!quota.data) return NextResponse.json({ error: "rate_limit" }, { status: 429 });
+  const ip = request.headers.get("x-forwarded-for")?.split(",")[0] ?? "local";
+  const now = Date.now();
+  if (requests.size > 1000) for (const [key, value] of requests) if (value.reset < now) requests.delete(key);
+  const entry = requests.get(ip);
+  if (entry && entry.reset > now && entry.count >= 30) return NextResponse.json({ error: "rate_limit" }, { status: 429 });
+  requests.set(ip, entry && entry.reset > now ? { ...entry, count: entry.count + 1 } : { count: 1, reset: now + 60_000 });
   return null;
 }

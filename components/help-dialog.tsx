@@ -63,8 +63,8 @@ export function HelpDialog({ onClose }: { onClose: () => void }) {
         <AudioLines size={19} />
         <span>
           {t(
-            "Your work is saved to your account. Export it in Settings to keep a backup.",
-            "Vaše práce je uložená ve vašem účtu. Zálohu vytvoříte exportem v Nastavení.",
+            "Your work stays in this browser. Export it in Settings to keep a backup.",
+            "Vaše práce zůstává v tomto prohlížeči. Zálohu vytvoříte exportem v Nastavení.",
           )}
         </span>
       </div>

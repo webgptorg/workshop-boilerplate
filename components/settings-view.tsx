@@ -8,8 +8,7 @@ import { Button } from "./ui/button";
 import { Modal } from "./ui/modal";
 import { PageHeading } from "./shared";
 import { WorkspaceDialog } from "./forms/workspace-dialog";
-import { mutate, isAppState, signOut } from "@/lib/store";
-import { bindAccount } from "@/lib/account-state";
+import { mutate, isAppState } from "@/lib/store";
 import { dayKey, downloadText } from "@/lib/utils";
 import type { AppState, Language, Theme, Workspace } from "@/lib/types";
 
@@ -73,13 +72,10 @@ export function SettingsView({ workspace }: { workspace: Workspace }) {
             <label className="field-label">
               {t("Email", "E-mail")}
               <input value={state.user.email} readOnly />
-              <span className="field-hint">{t("Signed in with Supabase", "Přihlášeno přes Supabase")}</span>
+              <span className="field-hint">{t("Demo account · no sign-in needed", "Ukázkový účet · bez přihlášení")}</span>
             </label>
             <Button variant="secondary" type="submit">
               {t("Save profile", "Uložit profil")}
-            </Button>
-            <Button variant="secondary" type="button" onClick={() => { void signOut().catch((error: unknown) => notify(error instanceof Error ? error.message : "Sign out failed.")); }}>
-              {t("Sign out", "Odhlásit se")}
             </Button>
           </form>
         </section>
@@ -90,8 +86,8 @@ export function SettingsView({ workspace }: { workspace: Workspace }) {
               <h2>{t("Look & language", "Vzhled a jazyk")}</h2>
               <p>
                 {t(
-                  "Your preferences follow your account across devices.",
-                  "Vaše předvolby se synchronizují s účtem napříč zařízeními.",
+                  "Your preferences follow you across workspaces on this device.",
+                  "Vaše předvolby platí ve všech prostorech na tomto zařízení.",
                 )}
               </p>
             </div>
@@ -172,8 +168,8 @@ export function SettingsView({ workspace }: { workspace: Workspace }) {
               <h2>{t("Your data, in your hands", "Vaše data ve vašich rukou")}</h2>
               <p>
                 {t(
-                  "Workspaces and recordings are saved to your account.",
-                  "Pracovní prostory a nahrávky jsou uložené ve vašem účtu.",
+                  "Workspaces are saved in this browser. Recordings stay on this device.",
+                  "Prostory jsou uložené v tomto prohlížeči. Nahrávky zůstávají na tomto zařízení.",
                 )}
               </p>
             </div>
@@ -243,7 +239,7 @@ export function SettingsView({ workspace }: { workspace: Workspace }) {
             </Button>
             <Button
               onClick={() => {
-                mutate(() => bindAccount(importData, state.user));
+                mutate(() => importData);
                 router.push(`/${importData.workspaces[0].id}`);
                 setImportData(null);
               }}
