@@ -1,6 +1,6 @@
 "use client";
 
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { ArrowLeft, AudioLines, Check, LoaderCircle, Upload } from "lucide-react";
@@ -9,6 +9,7 @@ import { useRecorder } from "@/lib/use-recorder";
 import { useMeetingProcessing } from "@/lib/use-meeting-processing";
 import { deleteRecordings, saveRecording } from "@/lib/media";
 import { mutate } from "@/lib/store";
+import { consumeRecordingStart } from "@/lib/recording-intent";
 import { uid } from "@/lib/utils";
 import type { Meeting, Recording } from "@/lib/types";
 import { Button } from "./ui/button";
@@ -65,6 +66,11 @@ export function MeetingStudio({ meeting }: { meeting: Meeting }) {
     notify(t("Recording saved", "Nahrávka uložena"));
   }
   const recorder = useRecorder(meeting.languages[0], addRecording);
+  const START_RECORDING = recorder.start;
+  useEffect(() => {
+    if (!consumeRecordingStart(meeting.id)) return;
+    void START_RECORDING();
+  }, [meeting.id, START_RECORDING]);
   const recording = recorder.status === "recording" || recorder.status === "paused";
   const occupied = recording || recorder.status === "saving" || !!recorder.recovery || processing.busy || uploading || recorder.requesting;
 

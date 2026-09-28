@@ -28,11 +28,13 @@ import type { Workspace } from "@/lib/types";
 export function Dashboard({
   workspace,
   onNewMeeting,
+  onStartRecording,
   onNewTodo,
   onHelp,
 }: {
   workspace: Workspace;
   onNewMeeting: (scheduled?: boolean) => void;
+  onStartRecording: () => void;
   onNewTodo: () => void;
   onHelp: () => void;
 }) {
@@ -75,7 +77,7 @@ export function Dashboard({
         title={`${t("Welcome back", "Vítejte zpět")}, ${state.user.name.split(" ")[0]} 👋`}
         subtitle={t("Your meetings and next steps.", "Vaše schůzky a další kroky.")}
       >
-        <Button onClick={() => onNewMeeting()}>
+        <Button variant="secondary" onClick={() => onNewMeeting()}>
           <Plus size={18} />
           {t("New meeting", "Nová schůzka")}
         </Button>
@@ -98,7 +100,7 @@ export function Dashboard({
             )}
           </p>
           <div className="banner-actions">
-            <Button onClick={() => onNewMeeting()}>
+            <Button className="button-record" onClick={onStartRecording}>
               <Mic size={16} />
               {t("Start recording", "Začít nahrávat")}
             </Button>

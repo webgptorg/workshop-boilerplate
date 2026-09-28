@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import { ChevronRight, Command, Home, Menu, Moon, Search, Sun } from "lucide-react";
 import { useMinute } from "./minute-provider";
 import { Sidebar } from "./sidebar";
@@ -19,11 +19,15 @@ import { TodoDialog } from "./forms/todo-dialog";
 import { HelpDialog } from "./help-dialog";
 import { SearchDialog } from "./search-dialog";
 import { mutate } from "@/lib/store";
-import type { Language } from "@/lib/types";
+import { createMeeting } from "@/lib/meeting";
+import { requestRecordingStart } from "@/lib/recording-intent";
+import { locale } from "@/lib/utils";
+import type { Language, Meeting } from "@/lib/types";
 
 export function AppShell({ path: serverPath }: { path: string[] }) {
   // The cached app shell also serves unvisited deep links while offline.
   const pathname = usePathname();
+  const router = useRouter();
   const path = pathname ? pathname.split("/").filter(Boolean) : serverPath;
   const { state, t } = useMinute();
   const [navOpen, setNavOpen] = useState(false);
@@ -60,6 +64,17 @@ export function AppShell({ path: serverPath }: { path: string[] }) {
   });
   const current = workspace ?? state.workspaces[0];
   const newMeeting = (scheduled = false) => setDialog(scheduled ? "schedule" : "meeting");
+  const startRecording = () => {
+    const DATE = new Date();
+    const NEXT: Meeting = {
+      ...createMeeting(current, state.user.name, DATE),
+      title: `${t("Meeting", "Schůzka")} · ${DATE.toLocaleString(locale(state.user.language), { dateStyle: "medium", timeStyle: "short" })}`,
+      status: "in-progress",
+    };
+    mutate((existing) => ({ ...existing, meetings: [NEXT, ...existing.meetings] }));
+    requestRecordingStart(NEXT.id);
+    router.push(`/${current.id}/meetings/${NEXT.id}/studio`);
+  };
   return (
     <div className="app-shell">
       <a className="skip-link" href="#main-content">
@@ -143,7 +158,13 @@ export function AppShell({ path: serverPath }: { path: string[] }) {
               </Link>
             </div>
           ) : section === "overview" ? (
-            <Dashboard workspace={current} onNewMeeting={newMeeting} onNewTodo={() => setDialog("todo")} onHelp={() => setDialog("help")} />
+            <Dashboard
+              workspace={current}
+              onNewMeeting={newMeeting}
+              onStartRecording={startRecording}
+              onNewTodo={() => setDialog("todo")}
+              onHelp={() => setDialog("help")}
+            />
           ) : section === "meetings" ? (
             meeting ? (
               path[3] === "studio" ? (

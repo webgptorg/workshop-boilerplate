@@ -12,7 +12,7 @@ Open http://localhost:3000. The first visit creates Alex Morgan's demo account, 
 ## Features
 
 - Multiple workspaces with inherited English/Czech meeting languages.
-- Scheduled and ad hoc meetings with their own URLs.
+- Scheduled and ad hoc meetings with their own URLs. The red **Start recording** button on the dashboard creates a meeting and opens the studio with recording already starting.
 - Microphone recording, pause/resume, multiple takes, audio uploads, playback, and downloads.
 - Automatic transcription, Markdown summaries, and linked action items.
 - Editable transcripts and Markdown descriptions with internal entity chips.
@@ -47,7 +47,7 @@ npm run build
 npm start
 ```
 
-Use HTTPS outside localhost for microphone access and PWA installation. The service worker caches the app shell, visited pages, and static assets; AI processing requires an internet connection. Install through the browser menu (on iOS, Share → Add to Home Screen). The service worker is disabled in development to avoid stale assets.
+Use HTTPS outside localhost for microphone access and PWA installation. On the first one-click recording, allow the browser's microphone permission request. If access is denied, the new meeting remains open in the studio so you can retry. The service worker caches the app shell, visited pages, and static assets; AI processing requires an internet connection. Install through the browser menu (on iOS, Share → Add to Home Screen). The service worker is disabled in development to avoid stale assets.
 
 ## Source layout
 

@@ -12,6 +12,7 @@ This repository is a small Promptbook-branded Next.js starter. Keep it understan
 - Never commit secrets or real credentials.
 - Keep line endings LF.
 - Keep changes small and the Git history linear where practical.
+- Start microphone recording only after an explicit user action. Opening or reloading a studio URL alone must not request access.
 
 ## Before finishing
 

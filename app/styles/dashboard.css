@@ -5,8 +5,7 @@
 .welcome-content h2 { font-size: 28px; line-height: 1.17; letter-spacing: -.9px; color: #29484d; font-weight: 600; margin-top: 11px; }
 .welcome-content p { color: #739096; font-size: 10px; margin-top: 12px; }
 .banner-actions { display: flex; align-items: center; gap: 19px; margin-top: 21px; }
-.banner-actions .button { min-height: 33px; font-size: 10px; padding: 7px 12px; background: #29535b; color: #f1ffff; }
-.banner-actions .button:hover { background: #386a74; }
+.banner-actions .button { min-height: 33px; font-size: 10px; padding: 7px 12px; }
 .upload-action { display: flex; align-items: center; gap: 6px; color: #587a81; background: transparent; font-size: 10px; font-weight: 500; }
 .conversation-art { position: absolute; width: 380px; height: 250px; right: 5%; top: 4px; }
 .art-orbit { position: absolute; border: 1px solid #badad952; border-radius: 50%; left: 50%; top: 50%; transform: translate(-50%, -50%); }

@@ -8,7 +8,8 @@ import { Button } from "../ui/button";
 import { LanguagePicker } from "./language-picker";
 import { useMinute } from "../minute-provider";
 import { mutate } from "@/lib/store";
-import { localDateTime, uid } from "@/lib/utils";
+import { createMeeting } from "@/lib/meeting";
+import { localDateTime } from "@/lib/utils";
 import type { Meeting, Workspace } from "@/lib/types";
 
 export function MeetingDialog({
@@ -32,8 +33,7 @@ export function MeetingDialog({
     const title = String(form.get("title")).trim();
     if (!title) return;
     const next: Meeting = {
-      id: meeting?.id ?? uid(),
-      workspaceId: workspace.id,
+      ...(meeting ?? createMeeting(workspace, state.user.name)),
       title,
       description: String(form.get("description") ?? "").trim(),
       date: new Date(String(form.get("date"))).toISOString(),
@@ -47,12 +47,6 @@ export function MeetingDialog({
         ),
       ],
       languages,
-      status: meeting?.status ?? "scheduled",
-      color: meeting?.color ?? "cyan",
-      recordings: meeting?.recordings ?? [],
-      transcript: meeting?.transcript,
-      processedText: meeting?.processedText,
-      transcriptRecordingIds: meeting?.transcriptRecordingIds,
     };
     mutate((current) => ({
       ...current,
