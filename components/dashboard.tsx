@@ -269,7 +269,7 @@ export function Dashboard({
       <footer className="page-footer">
         <span>
           <span className="tiny-dot" />
-          {t("Saved on this device", "Uloženo na tomto zařízení")}
+          {t("Saved to your account", "Uloženo ve vašem účtu")}
         </span>
         <span>Minute</span>
       </footer>

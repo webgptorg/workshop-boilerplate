@@ -57,8 +57,8 @@ export function RecordingItem({ recording, onDelete }: { recording: Recording; o
       {missing && (
         <p className="inline-error">
           {t(
-            "This recording is not on this device. Add the original file again.",
-            "Tato nahrávka není na zařízení. Přidejte původní soubor znovu.",
+            "This recording is not available in your account. Add the original file again.",
+            "Tato nahrávka není ve vašem účtu dostupná. Přidejte původní soubor znovu.",
           )}
         </p>
       )}

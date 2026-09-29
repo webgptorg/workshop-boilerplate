@@ -2,7 +2,8 @@
 
 import { createContext, useCallback, useContext, useEffect, useRef, useState } from "react";
 import { CheckCircle2, X } from "lucide-react";
-import { initializeStore, takeStorageError, useAppState } from "@/lib/store";
+import { hasUnsavedChanges, saveChanges, useAppState } from "@/lib/store";
+import { SaveStatus } from "./save-status";
 import type { AppState } from "@/lib/types";
 
 interface MinuteContextValue {
@@ -24,8 +25,15 @@ export function MinuteProvider({ children }: { children: React.ReactNode }) {
   }, []);
 
   useEffect(() => {
-    initializeStore();
+    const warnBeforeUnload = (event: BeforeUnloadEvent) => {
+      if (hasUnsavedChanges()) { event.preventDefault(); event.returnValue = ""; }
+    };
+    const retrySave = () => { void saveChanges(); };
+    window.addEventListener("beforeunload", warnBeforeUnload);
+    window.addEventListener("online", retrySave);
     return () => {
+      window.removeEventListener("beforeunload", warnBeforeUnload);
+      window.removeEventListener("online", retrySave);
       if (timer.current) clearTimeout(timer.current);
     };
   }, []);
@@ -39,8 +47,6 @@ export function MinuteProvider({ children }: { children: React.ReactNode }) {
     };
     apply();
     query.addEventListener("change", apply);
-    const message = takeStorageError();
-    if (message) queueMicrotask(() => notify(message));
     return () => query.removeEventListener("change", apply);
   }, [state, notify]);
 
@@ -72,6 +78,7 @@ export function MinuteProvider({ children }: { children: React.ReactNode }) {
   return (
     <MinuteContext.Provider value={{ state, t, notify }}>
       {children}
+      <SaveStatus />
       {toast && (
         <div className="toast" role="status">
           <CheckCircle2 size={19} />

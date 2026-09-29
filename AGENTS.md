@@ -14,6 +14,17 @@ This repository is a small Promptbook-branded Next.js starter. Keep it understan
 - Keep changes small and the Git history linear where practical.
 - Start microphone recording only after an explicit user action. Opening or reloading a studio URL alone must not request access.
 
+## Database and authentication
+
+- Supabase Auth owns identities and passwords. Use immutable Auth UUIDs for ownership; email is the login identifier. Email confirmation and OAuth are intentionally not implemented yet.
+- Add append-only `migrations/YYYY-MM-XXXX-description.sql` files. Never change an applied migration or add transaction control/nontransactional SQL. Startup commits the complete pending batch atomically.
+- Use the verified user-scoped Supabase client for application queries. Never use database-owner or service-role credentials in request handlers/browser code.
+- Enable RLS and explicit grants for every exposed table and private Storage bucket. Embedded workspace memberships currently grant no cross-account access; add relational authorization before implementing sharing.
+- Preserve optimistic revision checks, unsaved-change recovery, and account identity rebinding during imports. Do not restore localStorage as the source of workspace data.
+- Never enable the known-password test account in production. Keep database credentials server-only and TLS verification enabled.
+- Keep API responses and authenticated page data out of service-worker caches.
+- Run the PostgreSQL migration/RLS tests when changing persistence. Hosted Auth/Storage integration still needs a configured Supabase project for end-to-end verification.
+
 ## Before finishing
 
 Run:

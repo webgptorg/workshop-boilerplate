@@ -129,3 +129,9 @@
 .language-select select { width: 130px; font-size: 11px; }
 .settings-version { font: 600 19px var(--font-outfit), sans-serif; letter-spacing: -.5px; color: var(--secondary); text-align: center; margin: 12px 0 25px; }
 .settings-version span { font: 10px var(--font-body); letter-spacing: 0; color: var(--muted); margin-left: 10px; }
+
+.auth-page { min-height: 100dvh; display: grid; place-items: center; padding: 24px; }
+.auth-card { width: min(100%, 440px); }
+.auth-form { display: grid; gap: 18px; margin-top: 24px; }
+.save-status { position: fixed; bottom: 8px; left: 50%; transform: translateX(-50%); z-index: 90; padding: 6px 12px; border-radius: 10px; background: var(--surface); color: var(--secondary); font-size: 12px; max-width: calc(100% - 24px); }
+.save-error { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; width: max-content; border: 1px solid var(--border); box-shadow: 0 4px 20px #0002; }

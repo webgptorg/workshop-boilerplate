@@ -34,8 +34,8 @@ export function RecorderPanel({
             )
           : recorder.error === "save"
             ? t(
-                "The recording couldn’t be saved. Check your device storage.",
-                "Nahrávku se nepodařilo uložit. Zkontrolujte úložiště zařízení.",
+                "The recording couldn’t be saved. Check your connection.",
+                "Nahrávku se nepodařilo uložit. Zkontrolujte připojení.",
               )
             : t(
                 "We couldn’t use your microphone. Check that it’s connected and try again.",

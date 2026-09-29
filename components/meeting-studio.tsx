@@ -36,7 +36,8 @@ async function fileDuration(file: File): Promise<number> {
 }
 
 export function MeetingStudio({ meeting }: { meeting: Meeting }) {
-  const { t, notify } = useMinute();
+  const { state, t, notify } = useMinute();
+  const mutateAccount = (updater: Parameters<typeof mutate>[0]) => mutate(updater, state.user.id);
   const router = useRouter();
   const input = useRef<HTMLInputElement>(null);
   const [dragging, setDragging] = useState(false);
@@ -57,7 +58,7 @@ export function MeetingStudio({ meeting }: { meeting: Meeting }) {
       createdAt: new Date().toISOString(),
       liveTranscript: transcript || undefined,
     };
-    mutate((current) => ({
+    mutateAccount((current) => ({
       ...current,
       meetings: current.meetings.map((item) =>
         item.id === meeting.id ? { ...item, status: "in-progress", recordings: [...item.recordings, recording] } : item,
@@ -100,8 +101,8 @@ export function MeetingStudio({ meeting }: { meeting: Meeting }) {
     } catch {
       setUploadError(
         t(
-          "This file couldn’t be saved. Check your device storage and try again.",
-          "Soubor se nepodařilo uložit. Zkontrolujte úložiště zařízení a zkuste to znovu.",
+          "This file couldn’t be saved. Check your connection and try again.",
+          "Soubor se nepodařilo uložit. Zkontrolujte připojení a zkuste to znovu.",
         ),
       );
     } finally {
@@ -215,8 +216,8 @@ export function MeetingStudio({ meeting }: { meeting: Meeting }) {
         <Modal
           title={t("Remove this recording?", "Odebrat tuto nahrávku?")}
           subtitle={t(
-            "The audio file will be deleted from this device. Existing transcripts will stay.",
-            "Zvukový soubor bude odstraněn z tohoto zařízení. Existující přepisy zůstanou.",
+            "The audio file will be deleted from your account. Existing transcripts will stay.",
+            "Zvukový soubor bude odstraněn z vašeho účtu. Existující přepisy zůstanou.",
           )}
           onClose={() => setDeleting(null)}
         >
@@ -229,7 +230,7 @@ export function MeetingStudio({ meeting }: { meeting: Meeting }) {
               onClick={async () => {
                 try {
                   await deleteRecordings([deleting]);
-                  mutate((current) => ({
+                  mutateAccount((current) => ({
                     ...current,
                     meetings: current.meetings.map((item) =>
                       item.id === meeting.id ? { ...item, recordings: item.recordings.filter((rec) => rec.id !== deleting) } : item,

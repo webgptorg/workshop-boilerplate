@@ -1,6 +1,7 @@
 "use client";
 
 import { useRef, useState } from "react";
+import { authenticatedFetch } from "./supabase/browser";
 import { getRecording } from "./media";
 import { mutate } from "./store";
 import { uid } from "./utils";
@@ -8,7 +9,8 @@ import type { Meeting, MeetingAnalysis, Todo } from "./types";
 import { useMinute } from "@/components/minute-provider";
 
 export function useMeetingProcessing(meeting: Meeting) {
-  const { t, notify } = useMinute();
+  const { state, t, notify } = useMinute();
+  const mutateAccount = (updater: Parameters<typeof mutate>[0]) => mutate(updater, state.user.id);
   const [busy, setBusy] = useState(false);
   const [progress, setProgress] = useState("");
   const [error, setError] = useState("");
@@ -34,13 +36,13 @@ export function useMeetingProcessing(meeting: Meeting) {
         const form = new FormData();
         form.append("file", blob, recording.name);
         if (meeting.languages.length === 1) form.append("language", meeting.languages[0]);
-        const response = await fetch("/api/transcribe", { method: "POST", body: form });
+        const response = await authenticatedFetch("/api/transcribe", { method: "POST", body: form });
         const result = await response.json();
         if (!response.ok && result.error === "not_configured" && recording.liveTranscript) result.text = recording.liveTranscript;
         else if (!response.ok) throw new Error(result.error);
         if (typeof result.text !== "string") throw new Error("transcription_failed");
         segments.push(result.text);
-        mutate((current) => ({
+        mutateAccount((current) => ({
           ...current,
           meetings: current.meetings.map((item) =>
             item.id === meeting.id
@@ -51,7 +53,7 @@ export function useMeetingProcessing(meeting: Meeting) {
       }
       const text = [meeting.transcript?.text?.trim(), ...segments].filter(Boolean).join("\n\n").trim();
       if (!text) throw new Error("no_speech");
-      mutate((current) => ({
+      mutateAccount((current) => ({
         ...current,
         meetings: current.meetings.map((item) =>
           item.id === meeting.id
@@ -65,14 +67,14 @@ export function useMeetingProcessing(meeting: Meeting) {
       }));
       if (text !== meeting.processedText) {
         setProgress(t("Finding the next steps…", "Hledám další kroky…"));
-        const response = await fetch("/api/analyze", {
+        const response = await authenticatedFetch("/api/analyze", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ text, language: meeting.languages[0], date: meeting.date }),
         });
         const analysis = (await response.json()) as MeetingAnalysis & { error?: string };
         if (!response.ok) throw new Error(analysis.error);
-        mutate((current) => {
+        mutateAccount((current) => {
           const existing = new Set(
             current.todos.filter((todo) => todo.meetingIds.includes(meeting.id)).map((todo) => todo.title.toLocaleLowerCase().trim()),
           );
@@ -107,7 +109,7 @@ export function useMeetingProcessing(meeting: Meeting) {
           };
         });
       } else
-        mutate((current) => ({
+        mutateAccount((current) => ({
           ...current,
           meetings: current.meetings.map((item) => (item.id === meeting.id ? { ...item, status: "completed" } : item)),
         }));
@@ -128,8 +130,8 @@ export function useMeetingProcessing(meeting: Meeting) {
               )
             : code === "missing_recording"
               ? t(
-                  "A recording is missing from this device. Upload it again to continue.",
-                  "Na tomto zařízení chybí nahrávka. Nahrajte ji znovu.",
+                  "A recording is missing from your account. Upload it again to continue.",
+                  "Ve vašem účtu chybí nahrávka. Nahrajte ji znovu.",
                 )
               : code === "rate_limit"
                 ? t(

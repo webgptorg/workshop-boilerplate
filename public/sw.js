@@ -1,4 +1,4 @@
-const CACHE = "minute-v1";
+const CACHE = "minute-v2";
 const SHELL = ["/", "/icon.svg", "/manifest.webmanifest", "/icons/icon-192.png", "/icons/icon-512.png"];
 
 self.addEventListener("install", event => {
@@ -25,10 +25,7 @@ self.addEventListener("fetch", event => {
   // RSC payloads must never be returned in place of HTML documents.
   if (request.headers.get("RSC") === "1" || url.searchParams.has("_rsc")) return;
   if (request.mode === "navigate") {
-    event.respondWith(fetch(request).then(response => {
-      if (response.ok) { const copy = response.clone(); event.waitUntil(caches.open(CACHE).then(cache => cache.put(request, copy))); }
-      return response;
-    }).catch(async () => (await caches.match(request)) || (await caches.match("/")) || Response.error()));
+    event.respondWith(fetch(request).catch(async () => (await caches.match("/")) || Response.error()));
     return;
   }
   if (url.pathname.startsWith("/_next/static/") || SHELL.includes(url.pathname)) {

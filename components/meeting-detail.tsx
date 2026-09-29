@@ -39,6 +39,7 @@ import type { Meeting, Workspace } from "@/lib/types";
 
 export function MeetingDetail({ meeting, workspace }: { meeting: Meeting; workspace: Workspace }) {
   const { state, t, notify } = useMinute();
+  const mutateAccount = (updater: Parameters<typeof mutate>[0]) => mutate(updater, state.user.id);
   const router = useRouter();
   const [tab, setTab] = useState("summary");
   const [dialog, setDialog] = useState<"edit" | "delete" | "todo" | null>(null);
@@ -246,7 +247,7 @@ export function MeetingDetail({ meeting, workspace }: { meeting: Meeting; worksp
           </div>
           <div className="privacy-note">
             <span className="tiny-dot" />
-            {t("Saved on this device", "Uloženo na tomto zařízení")}
+            {t("Saved to your account", "Uloženo ve vašem účtu")}
           </div>
         </aside>
       </div>
@@ -274,7 +275,7 @@ export function MeetingDetail({ meeting, workspace }: { meeting: Meeting; worksp
                 setDeleting(true);
                 try {
                   await deleteRecordings(meeting.recordings.map((item) => item.id));
-                  mutate((current) => ({
+                  mutateAccount((current) => ({
                     ...current,
                     meetings: current.meetings.filter((item) => item.id !== meeting.id),
                     todos: current.todos.map((todo) => ({ ...todo, meetingIds: todo.meetingIds.filter((id) => id !== meeting.id) })),

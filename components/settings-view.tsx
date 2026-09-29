@@ -8,7 +8,8 @@ import { Button } from "./ui/button";
 import { Modal } from "./ui/modal";
 import { PageHeading } from "./shared";
 import { WorkspaceDialog } from "./forms/workspace-dialog";
-import { mutate, isAppState } from "@/lib/store";
+import { browserSupabase } from "@/lib/supabase/browser";
+import { hasUnsavedChanges, saveChanges, mutate, isAppState } from "@/lib/store";
 import { dayKey, downloadText } from "@/lib/utils";
 import type { AppState, Language, Theme, Workspace } from "@/lib/types";
 
@@ -72,12 +73,18 @@ export function SettingsView({ workspace }: { workspace: Workspace }) {
             <label className="field-label">
               {t("Email", "E-mail")}
               <input value={state.user.email} readOnly />
-              <span className="field-hint">{t("Demo account · no sign-in needed", "Ukázkový účet · bez přihlášení")}</span>
+              <span className="field-hint">{t("Signed in with email and password", "Přihlášení e-mailem a heslem")}</span>
             </label>
             <Button variant="secondary" type="submit">
               {t("Save profile", "Uložit profil")}
             </Button>
           </form>
+          <Button variant="secondary" onClick={async () => {
+            await saveChanges();
+            if (hasUnsavedChanges()) { notify("Save or export your unsaved changes before signing out."); return; }
+            const { error } = await browserSupabase().auth.signOut();
+            if (error) notify("Could not sign out. Please try again.");
+          }}>Sign out</Button>
         </section>
         <section className="settings-card">
           <div className="settings-title">
@@ -86,8 +93,8 @@ export function SettingsView({ workspace }: { workspace: Workspace }) {
               <h2>{t("Look & language", "Vzhled a jazyk")}</h2>
               <p>
                 {t(
-                  "Your preferences follow you across workspaces on this device.",
-                  "Vaše předvolby platí ve všech prostorech na tomto zařízení.",
+                  "Your preferences follow you across your devices.",
+                  "Vaše předvolby platí na všech vašich zařízeních.",
                 )}
               </p>
             </div>
@@ -168,8 +175,8 @@ export function SettingsView({ workspace }: { workspace: Workspace }) {
               <h2>{t("Your data, in your hands", "Vaše data ve vašich rukou")}</h2>
               <p>
                 {t(
-                  "Workspaces are saved in this browser. Recordings stay on this device.",
-                  "Prostory jsou uložené v tomto prohlížeči. Nahrávky zůstávají na tomto zařízení.",
+                  "Workspaces and recordings are saved privately in your account.",
+                  "Prostory a nahrávky jsou soukromě uložené ve vašem účtu.",
                 )}
               </p>
             </div>
