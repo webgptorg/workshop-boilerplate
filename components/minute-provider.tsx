@@ -2,10 +2,7 @@
 
 import { createContext, useCallback, useContext, useEffect, useRef, useState } from "react";
 import { CheckCircle2, X } from "lucide-react";
-import { initializeStore, resetStore, hasUnsavedChanges, useAppState } from "@/lib/store";
-import { SaveStatus } from "./save-status";
-import { Button } from "./ui/button";
-import { getBrowserSupabase } from "@/lib/supabase/browser";
+import { initializeStore, takeStorageError, useAppState } from "@/lib/store";
 import type { AppState } from "@/lib/types";
 
 interface MinuteContextValue {
@@ -18,8 +15,6 @@ const MinuteContext = createContext<MinuteContextValue | null>(null);
 
 export function MinuteProvider({ children }: { children: React.ReactNode }) {
   const state = useAppState();
-  const [loadError, setLoadError] = useState("");
-  const [loadAttempt, setLoadAttempt] = useState(0);
   const [toast, setToast] = useState("");
   const timer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const notify = useCallback((message: string) => {
@@ -29,21 +24,11 @@ export function MinuteProvider({ children }: { children: React.ReactNode }) {
   }, []);
 
   useEffect(() => {
-    let isActive = true;
-    initializeStore().catch((error: unknown) => {
-      if (isActive) setLoadError(error instanceof Error ? error.message : "Could not load your account.");
-    });
-    const beforeUnload = (event: BeforeUnloadEvent) => {
-      if (hasUnsavedChanges()) { event.preventDefault(); }
-    };
-    window.addEventListener("beforeunload", beforeUnload);
+    initializeStore();
     return () => {
-      isActive = false;
-      window.removeEventListener("beforeunload", beforeUnload);
-      resetStore();
       if (timer.current) clearTimeout(timer.current);
     };
-  }, [loadAttempt]);
+  }, []);
 
   useEffect(() => {
     if (!state) return;
@@ -54,6 +39,8 @@ export function MinuteProvider({ children }: { children: React.ReactNode }) {
     };
     apply();
     query.addEventListener("change", apply);
+    const message = takeStorageError();
+    if (message) queueMicrotask(() => notify(message));
     return () => query.removeEventListener("change", apply);
   }, [state, notify]);
 
@@ -66,14 +53,6 @@ export function MinuteProvider({ children }: { children: React.ReactNode }) {
   }, []);
 
   const t = useCallback((english: string, czech: string) => (state?.user.language === "cs" ? czech : english), [state?.user.language]);
-
-  if (loadError) return (
-    <div className="auth-page"><section className="settings-card auth-card">
-      <p role="alert">{loadError}</p>
-      <Button onClick={() => { setLoadError(""); setLoadAttempt((attempt) => attempt + 1); }}>Retry</Button>
-      <Button variant="ghost" onClick={() => void getBrowserSupabase().auth.signOut()}>Sign out</Button>
-    </section></div>
-  );
 
   if (!state)
     return (
@@ -93,7 +72,6 @@ export function MinuteProvider({ children }: { children: React.ReactNode }) {
   return (
     <MinuteContext.Provider value={{ state, t, notify }}>
       {children}
-      <SaveStatus />
       {toast && (
         <div className="toast" role="status">
           <CheckCircle2 size={19} />
