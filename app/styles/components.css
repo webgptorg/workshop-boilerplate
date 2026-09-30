@@ -90,3 +90,10 @@
 .not-found > span { font-size: 70px; color: var(--accent); font-weight: 600; letter-spacing: -4px; }
 .not-found h1 { margin: 10px 0 16px; }
 .not-found p { color: var(--muted); margin-bottom: 25px; }
+
+.auth-page { min-height: 100dvh; display: grid; place-items: center; padding: 24px; }
+.auth-card { width: min(100%, 420px); display: grid; gap: 18px; }
+.auth-form { display: grid; gap: 18px; }
+.auth-card h1 { font-size: 38px; }
+.save-status { position: fixed; bottom: 12px; right: 16px; z-index: 60; padding: 8px 12px; border-radius: 12px; background: var(--surface); color: var(--muted); font-size: 12px; display: flex; gap: 12px; align-items: center; max-width: calc(100vw - 32px); box-shadow: var(--shadow); }
+.save-status-error { border: 1px solid var(--accent); color: var(--ink); flex-wrap: wrap; }

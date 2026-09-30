@@ -14,6 +14,16 @@ This repository is a small Promptbook-branded Next.js starter. Keep it understan
 - Keep changes small and the Git history linear where practical.
 - Start microphone recording only after an explicit user action. Opening or reloading a studio URL alone must not request access.
 
+## Database and accounts
+
+- Keep SQL migrations in `migrations/` with `YYYY-MM-XXXX-description.sql` filenames. Applied files are immutable; add a later migration for changes.
+- Let the startup runner own the transaction. All pending migrations must commit together; never add transaction control or nontransactional SQL operations.
+- Use the authenticated Supabase client for runtime data access so RLS applies. Keep migration credentials server-only and never use an elevated client for normal account operations.
+- Preserve account identity when importing backups. Memberships currently describe private account data, not sharing permissions.
+- Keep the default test account disabled in production until an administrator changes its password and removes the ban.
+- Next account work: implement email ownership verification and account recovery before enabling provider linking or OAuth. Shared workspaces will need a relational membership authorization model and new RLS policies.
+- Run database integration tests against a fresh disposable `minute_test` database using `MINUTE_TEST_DATABASE_URL`; never point them at application data.
+
 ## Before finishing
 
 Run:

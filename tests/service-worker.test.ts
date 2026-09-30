@@ -30,9 +30,9 @@ function worker() {
   };
 }
 
-test("offline navigation to an unvisited meeting receives the cached app shell", async () => {
-  const response = await worker()("/workspace/meetings/unvisited");
-  assert.equal(await response?.text(), "<html>Minute app shell</html>");
+test("account navigation is never served from a cache", () => {
+  assert.equal(worker()("/workspace/meetings/unvisited"), undefined);
+  assert.equal(worker()("/"), undefined);
 });
 
 test("the service worker never substitutes HTML for API or RSC responses", () => {

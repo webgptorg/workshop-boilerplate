@@ -31,7 +31,7 @@ import { MeetingPeople } from "./meeting-people";
 import { TodoRow } from "./todo-row";
 import { MeetingDialog } from "./forms/meeting-dialog";
 import { TodoDialog } from "./forms/todo-dialog";
-import { mutate } from "@/lib/store";
+import { flushStore, createAccountMutator } from "@/lib/store";
 import { deleteRecordings } from "@/lib/media";
 import { useMeetingProcessing } from "@/lib/use-meeting-processing";
 import { dateLabel, downloadText, timeLabel } from "@/lib/utils";
@@ -39,6 +39,7 @@ import type { Meeting, Workspace } from "@/lib/types";
 
 export function MeetingDetail({ meeting, workspace }: { meeting: Meeting; workspace: Workspace }) {
   const { state, t, notify } = useMinute();
+  const mutate = createAccountMutator(state.user.id);
   const router = useRouter();
   const [tab, setTab] = useState("summary");
   const [dialog, setDialog] = useState<"edit" | "delete" | "todo" | null>(null);
@@ -273,12 +274,13 @@ export function MeetingDetail({ meeting, workspace }: { meeting: Meeting; worksp
               onClick={async () => {
                 setDeleting(true);
                 try {
-                  await deleteRecordings(meeting.recordings.map((item) => item.id));
                   mutate((current) => ({
                     ...current,
                     meetings: current.meetings.filter((item) => item.id !== meeting.id),
                     todos: current.todos.map((todo) => ({ ...todo, meetingIds: todo.meetingIds.filter((id) => id !== meeting.id) })),
                   }));
+                  if (!(await flushStore())) throw new Error("Metadata was not saved");
+                  await deleteRecordings(meeting.recordings.map((item) => item.id));
                   router.push(`/${workspace.id}/meetings`);
                   notify(t("Meeting deleted", "Schůzka smazána"));
                 } catch {

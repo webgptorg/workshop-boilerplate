@@ -8,7 +8,7 @@ import { useMinute } from "./minute-provider";
 import { useRecorder } from "@/lib/use-recorder";
 import { useMeetingProcessing } from "@/lib/use-meeting-processing";
 import { deleteRecordings, saveRecording } from "@/lib/media";
-import { mutate } from "@/lib/store";
+import { createAccountMutator, flushStore } from "@/lib/store";
 import { consumeRecordingStart } from "@/lib/recording-intent";
 import { uid } from "@/lib/utils";
 import type { Meeting, Recording } from "@/lib/types";
@@ -36,7 +36,8 @@ async function fileDuration(file: File): Promise<number> {
 }
 
 export function MeetingStudio({ meeting }: { meeting: Meeting }) {
-  const { t, notify } = useMinute();
+  const { state, t, notify } = useMinute();
+  const mutate = createAccountMutator(state.user.id);
   const router = useRouter();
   const input = useRef<HTMLInputElement>(null);
   const [dragging, setDragging] = useState(false);
@@ -215,8 +216,8 @@ export function MeetingStudio({ meeting }: { meeting: Meeting }) {
         <Modal
           title={t("Remove this recording?", "Odebrat tuto nahrávku?")}
           subtitle={t(
-            "The audio file will be deleted from this device. Existing transcripts will stay.",
-            "Zvukový soubor bude odstraněn z tohoto zařízení. Existující přepisy zůstanou.",
+            "The audio file will be deleted from your account. Existing transcripts will stay.",
+            "Zvukový soubor bude odstraněn z vašeho účtu. Existující přepisy zůstanou.",
           )}
           onClose={() => setDeleting(null)}
         >
@@ -228,13 +229,14 @@ export function MeetingStudio({ meeting }: { meeting: Meeting }) {
               className="button-danger"
               onClick={async () => {
                 try {
-                  await deleteRecordings([deleting]);
                   mutate((current) => ({
                     ...current,
                     meetings: current.meetings.map((item) =>
                       item.id === meeting.id ? { ...item, recordings: item.recordings.filter((rec) => rec.id !== deleting) } : item,
                     ),
                   }));
+                  if (!(await flushStore())) throw new Error("Metadata was not saved");
+                  await deleteRecordings([deleting]);
                   setDeleting(null);
                 } catch {
                   notify(t("Recording could not be removed. Please try again.", "Nahrávku nelze odebrat. Zkuste to znovu."));

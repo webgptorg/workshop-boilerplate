@@ -8,7 +8,8 @@ import { Button } from "./ui/button";
 import { Modal } from "./ui/modal";
 import { PageHeading } from "./shared";
 import { WorkspaceDialog } from "./forms/workspace-dialog";
-import { mutate, isAppState } from "@/lib/store";
+import { mutate, isAppState, flushStore } from "@/lib/store";
+import { getBrowserSupabase } from "@/lib/supabase/browser";
 import { dayKey, downloadText } from "@/lib/utils";
 import type { AppState, Language, Theme, Workspace } from "@/lib/types";
 
@@ -61,7 +62,7 @@ export function SettingsView({ workspace }: { workspace: Workspace }) {
               const name = String(data.get("name")).trim();
               if (name) {
                 mutate((current) => ({ ...current, user: { ...current.user, name } }));
-                notify(t("Profile saved", "Profil uložen"));
+                notify(t("Profile updated. Saving changes...", "Profil upraven. Ukládám změny..."));
               }
             }}
           >
@@ -86,8 +87,8 @@ export function SettingsView({ workspace }: { workspace: Workspace }) {
               <h2>{t("Look & language", "Vzhled a jazyk")}</h2>
               <p>
                 {t(
-                  "Your preferences follow you across workspaces on this device.",
-                  "Vaše předvolby platí ve všech prostorech na tomto zařízení.",
+                  "Your preferences follow you across workspaces and devices.",
+                  "Vaše předvolby platí ve všech prostorech na všech zařízeních.",
                 )}
               </p>
             </div>
@@ -168,8 +169,8 @@ export function SettingsView({ workspace }: { workspace: Workspace }) {
               <h2>{t("Your data, in your hands", "Vaše data ve vašich rukou")}</h2>
               <p>
                 {t(
-                  "Workspaces are saved in this browser. Recordings stay on this device.",
-                  "Prostory jsou uložené v tomto prohlížeči. Nahrávky zůstávají na tomto zařízení.",
+                  "Your workspaces and recordings are saved securely in your account.",
+                  "Vaše prostory a nahrávky jsou bezpečně uložené ve vašem účtu.",
                 )}
               </p>
             </div>
@@ -222,6 +223,14 @@ export function SettingsView({ workspace }: { workspace: Workspace }) {
             />
           </div>
         </section>
+        <Button variant="secondary" onClick={async () => {
+          if (!(await flushStore())) {
+            notify(t("Save your changes, or export a backup and reload, before signing out.", "Před odhlášením uložte změny nebo exportujte zálohu a obnovte stránku."));
+            return;
+          }
+          const { error } = await getBrowserSupabase().auth.signOut();
+          if (error) notify(t("Could not sign out. Try again.", "Odhlášení se nezdařilo. Zkuste to znovu."));
+        }}>{t("Sign out", "Odhlásit se")}</Button>
         <p className="settings-version">
           minute. <span>v1.0 · {t("A little more present.", "O něco více přítomnosti.")}</span>
         </p>

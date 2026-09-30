@@ -13,17 +13,23 @@
     "coder:generate-boilerplates": "npx ptbk coder generate-boilerplates --count 5*1 --template ./prompts/templates/common.md",
     "coder:add": "npx ptbk coder add --template ./prompts/templates/common.md",
     "coder:run": "npx ptbk coder run --no-questions --harness openai-codex --model gpt-6-luna --thinking-level high --agent agents/developer.book --context AGENTS.md --test npm run check --test-before yes-and-fail",
-    "coder:verify": "npx ptbk coder verify"
+    "coder:verify": "npx ptbk coder verify",
+    "db:migrate": "tsx scripts/migrate.ts"
   },
   "dependencies": {
+    "@supabase/supabase-js": "^2.117.2",
     "lucide-react": "^1.48.0",
     "next": "^16.3.6",
+    "pg": "^8.23.0",
     "react": "latest",
     "react-dom": "latest",
-    "react-markdown": "^10.1.0"
+    "react-markdown": "^10.1.0",
+    "server-only": "^0.0.1"
   },
   "devDependencies": {
+    "@next/env": "^16.3.7",
     "@types/node": "latest",
+    "@types/pg": "^8.23.1",
     "@types/react": "latest",
     "@types/react-dom": "latest",
     "eslint": "latest",
