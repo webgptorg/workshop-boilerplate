@@ -12,7 +12,7 @@
     "test": "tsx --test tests/*.test.ts",
     "coder:generate-boilerplates": "npx ptbk coder generate-boilerplates --count 5*1 --template ./prompts/templates/common.md",
     "coder:add": "npx ptbk coder add --template ./prompts/templates/common.md",
-    "coder:run": "npx ptbk coder run --no-questions --harness openai-codex --model gpt-6-luna --thinking-level high --agent agents/developer.book --context AGENTS.md --test npm run check --test-before yes-and-fail",
+    "coder:run": "npx ptbk coder run --no-questions --harness openai-codex --model gpt-6.1-sol --thinking-level high --agent agents/developer.book --context AGENTS.md --test npm run check --test-before yes-and-fail",
     "coder:verify": "npx ptbk coder verify"
   },
   "dependencies": {
