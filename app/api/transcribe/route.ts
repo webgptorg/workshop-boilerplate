@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { guardRequest } from "@/lib/api-guard";
+import { MAX_TRANSCRIPTION_FILE_SIZE_BYTES, MAX_TRANSCRIPTION_REQUEST_SIZE_BYTES } from "@/lib/transcription-configuration";
 
 export const runtime = "nodejs";
 export const maxDuration = 120;
@@ -8,13 +9,13 @@ export async function POST(request: Request) {
   const BLOCKED = await guardRequest(request);
   if (BLOCKED) return BLOCKED;
   if (!process.env.OPENAI_API_KEY) return NextResponse.json({ error: "not_configured" }, { status: 503 });
-  if (Number(request.headers.get("content-length")) > 26 * 1024 * 1024)
+  if (Number(request.headers.get("content-length")) > MAX_TRANSCRIPTION_REQUEST_SIZE_BYTES)
     return NextResponse.json({ error: "file_too_large" }, { status: 413 });
   try {
     const data = await request.formData();
     const file = data.get("file");
     if (!(file instanceof File) || !file.size) return NextResponse.json({ error: "missing_file" }, { status: 400 });
-    if (file.size > 25 * 1024 * 1024) return NextResponse.json({ error: "file_too_large" }, { status: 413 });
+    if (file.size > MAX_TRANSCRIPTION_FILE_SIZE_BYTES) return NextResponse.json({ error: "file_too_large" }, { status: 413 });
     if (!/\.(mp3|mp4|mpeg|mpga|m4a|wav|webm|ogg|flac)$/i.test(file.name))
       return NextResponse.json({ error: "unsupported_file" }, { status: 400 });
     const form = new FormData();

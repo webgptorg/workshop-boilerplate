@@ -15,6 +15,8 @@ async function run() {
         SUPABASE_DATABASE_CA: "",
         NEXT_PUBLIC_SUPABASE_URL: "http://127.0.0.1:54321",
         NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY: "isolated-browser-test-key",
+        NEXT_PUBLIC_MAX_AUDIO_UPLOAD_SIZE_MB: "500",
+        NEXT_PUBLIC_MAX_AUDIO_UPLOAD_DURATION_HOURS: "5",
         SUPABASE_SECRET_KEY: "", DB_SEED_TEST_USER: "true",
       },
     });

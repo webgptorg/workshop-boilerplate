@@ -5,6 +5,7 @@ import { authenticatedFetch } from "./supabase";
 import { getRecording } from "./media";
 import { mutate } from "./store";
 import { uid } from "./utils";
+import { MAX_TRANSCRIPTION_FILE_SIZE_BYTES, MAX_TRANSCRIPTION_FILE_SIZE_MB } from "./transcription-configuration";
 import type { Meeting, MeetingAnalysis, Todo } from "./types";
 import { useMinute } from "@/components/minute-provider";
 
@@ -32,6 +33,7 @@ export function useMeetingProcessing(meeting: Meeting) {
         setProgress(`${t("Transcribing recording", "Přepisuji nahrávku")} ${i + 1}/${meeting.recordings.length}…`);
         const blob = await getRecording(recording.id);
         if (!blob) throw new Error("missing_recording");
+        if (blob.size > MAX_TRANSCRIPTION_FILE_SIZE_BYTES) throw new Error("file_too_large");
         const form = new FormData();
         form.append("file", blob, recording.name);
         if (meeting.languages.length === 1) form.append("language", meeting.languages[0]);
@@ -117,30 +119,35 @@ export function useMeetingProcessing(meeting: Meeting) {
     } catch (reason) {
       const code = reason instanceof Error ? reason.message : "unknown";
       const message =
-        code === "not_configured"
+        code === "file_too_large"
           ? t(
-              "Automatic transcription needs an API connection. Your recordings are saved; you can add a transcript manually.",
-              "Automatický přepis potřebuje připojení k API. Nahrávky jsou uložené; přepis můžete přidat ručně.",
+              `Automatic transcription supports files up to ${MAX_TRANSCRIPTION_FILE_SIZE_MB} MB. Your recording is saved. Upload smaller parts for automatic transcription.`,
+              `Automatický přepis podporuje soubory do ${MAX_TRANSCRIPTION_FILE_SIZE_MB} MB. Nahrávka je uložená. Pro automatický přepis nahrajte menší části.`,
             )
-          : code === "no_speech"
+          : code === "not_configured"
             ? t(
-                "No speech found. Add a recording or paste a transcript to continue.",
-                "Nebyla nalezena řeč. Přidejte nahrávku nebo vložte přepis.",
+                "Automatic transcription needs an API connection. Your recordings are saved; you can add a transcript manually.",
+                "Automatický přepis potřebuje připojení k API. Nahrávky jsou uložené; přepis můžete přidat ručně.",
               )
-            : code === "missing_recording"
+            : code === "no_speech"
               ? t(
-                  "A recording is missing from this device. Upload it again to continue.",
-                  "Na tomto zařízení chybí nahrávka. Nahrajte ji znovu.",
+                  "No speech found. Add a recording or paste a transcript to continue.",
+                  "Nebyla nalezena řeč. Přidejte nahrávku nebo vložte přepis.",
                 )
-              : code === "rate_limit"
+              : code === "missing_recording"
                 ? t(
-                    "The transcription service is busy. Your work is saved; try again shortly.",
-                    "Služba je zaneprázdněná. Vaše práce je uložená; zkuste to za chvíli.",
+                    "A recording is missing from this device. Upload it again to continue.",
+                    "Na tomto zařízení chybí nahrávka. Nahrajte ji znovu.",
                   )
-                : t(
-                    "Processing couldn’t finish. Your recordings and transcript are saved. Check your connection and try again.",
-                    "Zpracování se nezdařilo. Nahrávky a přepis jsou uložené. Zkontrolujte připojení a zkuste to znovu.",
-                  );
+                : code === "rate_limit"
+                  ? t(
+                      "The transcription service is busy. Your work is saved; try again shortly.",
+                      "Služba je zaneprázdněná. Vaše práce je uložená; zkuste to za chvíli.",
+                    )
+                  : t(
+                      "Processing couldn’t finish. Your recordings and transcript are saved. Check your connection and try again.",
+                      "Zpracování se nezdařilo. Nahrávky a přepis jsou uložené. Zkontrolujte připojení a zkuste to znovu.",
+                    );
       setError(message);
       return false;
     } finally {

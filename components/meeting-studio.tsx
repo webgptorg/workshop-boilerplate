@@ -11,6 +11,8 @@ import { deleteRecordings, saveRecording } from "@/lib/media";
 import { mutate } from "@/lib/store";
 import { consumeRecordingStart } from "@/lib/recording-intent";
 import { uid } from "@/lib/utils";
+import { AUDIO_UPLOAD_LIMITS, isAudioUploadDurationAllowed, isAudioUploadSizeAllowed } from "@/lib/audio-upload-configuration";
+import { getAudioFileDuration } from "@/lib/audio-file-duration";
 import type { Meeting, Recording } from "@/lib/types";
 import { Button } from "./ui/button";
 import { Modal } from "./ui/modal";
@@ -19,28 +21,12 @@ import { RecordingItem } from "./recording-item";
 import { RecorderPanel } from "./recorder-panel";
 import { StudioContext } from "./studio-context";
 
-async function fileDuration(file: File): Promise<number> {
-  const url = URL.createObjectURL(file);
-  return new Promise((resolve) => {
-    const audio = new Audio();
-    const finish = () => {
-      clearTimeout(timeout);
-      URL.revokeObjectURL(url);
-      resolve(Number.isFinite(audio.duration) ? audio.duration : 0);
-    };
-    const timeout = setTimeout(finish, 5000);
-    audio.onloadedmetadata = finish;
-    audio.onerror = finish;
-    audio.src = url;
-  });
-}
-
 export function MeetingStudio({ meeting }: { meeting: Meeting }) {
-  const { t, notify } = useMinute();
+  const { t: translateMessage, notify } = useMinute();
   const router = useRouter();
   const input = useRef<HTMLInputElement>(null);
-  const [dragging, setDragging] = useState(false);
-  const [uploading, setUploading] = useState(false);
+  const [isDragging, setIsDragging] = useState(false);
+  const [isUploading, setIsUploading] = useState(false);
   const [uploadError, setUploadError] = useState("");
   const [deleting, setDeleting] = useState<string | null>(null);
   const processing = useMeetingProcessing(meeting);
@@ -50,7 +36,7 @@ export function MeetingStudio({ meeting }: { meeting: Meeting }) {
     await saveRecording(id, blob);
     const recording: Recording = {
       id,
-      name: name ?? `${t("Recording", "Nahrávka")} ${meeting.recordings.length + 1}.${blob.type.includes("mp4") ? "m4a" : "webm"}`,
+      name: name ?? `${translateMessage("Recording", "Nahrávka")} ${meeting.recordings.length + 1}.${blob.type.includes("mp4") ? "m4a" : "webm"}`,
       mimeType: blob.type,
       size: blob.size,
       duration,
@@ -63,7 +49,7 @@ export function MeetingStudio({ meeting }: { meeting: Meeting }) {
         item.id === meeting.id ? { ...item, status: "in-progress", recordings: [...item.recordings, recording] } : item,
       ),
     }));
-    notify(t("Recording saved", "Nahrávka uložena"));
+    notify(translateMessage("Recording saved", "Nahrávka uložena"));
   }
   const recorder = useRecorder(meeting.languages[0], addRecording);
   const START_RECORDING = recorder.start;
@@ -71,41 +57,56 @@ export function MeetingStudio({ meeting }: { meeting: Meeting }) {
     if (!consumeRecordingStart(meeting.id)) return;
     void START_RECORDING();
   }, [meeting.id, START_RECORDING]);
-  const recording = recorder.status === "recording" || recorder.status === "paused";
-  const occupied = recording || recorder.status === "saving" || !!recorder.recovery || processing.busy || uploading || recorder.requesting;
+  const isRecording = recorder.status === "recording" || recorder.status === "paused";
+  const isOccupied = isRecording || recorder.status === "saving" || !!recorder.recovery || processing.busy || isUploading || recorder.requesting;
 
   async function upload(files: FileList | File[]) {
-    if (occupied) return;
-    setUploading(true);
+    if (isOccupied) return;
+    setIsUploading(true);
     setUploadError("");
     try {
       for (const file of Array.from(files)) {
         if (!/\.(mp3|mp4|mpeg|mpga|m4a|wav|webm|ogg|flac)$/i.test(file.name)) {
           setUploadError(
-            t("Choose an MP3, MP4, M4A, WAV, WebM, OGG, or FLAC file.", "Vyberte soubor MP3, MP4, M4A, WAV, WebM, OGG nebo FLAC."),
+            translateMessage("Choose an MP3, MP4, M4A, WAV, WebM, OGG, or FLAC file.", "Vyberte soubor MP3, MP4, M4A, WAV, WebM, OGG nebo FLAC."),
           );
           continue;
         }
-        if (!file.size || file.size > 25 * 1024 * 1024) {
+        if (!isAudioUploadSizeAllowed(file.size)) {
           setUploadError(
-            t(
-              "Each file must be between 1 byte and 25 MB. Split larger recordings before uploading.",
-              "Každý soubor musí mít 1 bajt až 25 MB. Větší nahrávky nejprve rozdělte.",
+            translateMessage(
+              `Each file must be between 1 byte and ${AUDIO_UPLOAD_LIMITS.maxSizeMegabytes} MB. Split larger recordings before uploading.`,
+              `Každý soubor musí mít 1 bajt až ${AUDIO_UPLOAD_LIMITS.maxSizeMegabytes} MB. Větší nahrávky nejprve rozdělte.`,
             ),
           );
           continue;
         }
-        await addRecording(file, await fileDuration(file), "", file.name);
+        const DURATION = await getAudioFileDuration(file);
+        if (DURATION === null) {
+          setUploadError(translateMessage(
+            "Could not read this recording’s duration. Choose a playable audio file with duration metadata.",
+            "Nelze zjistit délku nahrávky. Vyberte přehratelný zvukový soubor s údajem o délce.",
+          ));
+          continue;
+        }
+        if (!isAudioUploadDurationAllowed(DURATION)) {
+          setUploadError(translateMessage(
+            `Each recording must be no longer than ${AUDIO_UPLOAD_LIMITS.maxDurationHours} h. Split longer recordings before uploading.`,
+            `Každá nahrávka může mít nejvýše ${AUDIO_UPLOAD_LIMITS.maxDurationHours} h. Delší nahrávky nejprve rozdělte.`,
+          ));
+          continue;
+        }
+        await addRecording(file, DURATION, "", file.name);
       }
     } catch {
       setUploadError(
-        t(
+        translateMessage(
           "This file couldn’t be saved. Check your device storage and try again.",
           "Soubor se nepodařilo uložit. Zkontrolujte úložiště zařízení a zkuste to znovu.",
         ),
       );
     } finally {
-      setUploading(false);
+      setIsUploading(false);
       if (input.current) input.current.value = "";
     }
   }
@@ -114,25 +115,25 @@ export function MeetingStudio({ meeting }: { meeting: Meeting }) {
     <>
       <Link href={`/${meeting.workspaceId}/meetings/${meeting.id}`} className="back-link">
         <ArrowLeft size={16} />
-        {t("Meeting details", "Podrobnosti schůzky")}
+        {translateMessage("Meeting details", "Podrobnosti schůzky")}
       </Link>
       <div className="studio-heading">
         <div>
           <div className="eyebrow">
             <span className="tiny-dot" />
-            {t("MEETING STUDIO", "STUDIO SCHŮZKY")}
+            {translateMessage("MEETING STUDIO", "STUDIO SCHŮZKY")}
           </div>
           <h1>{meeting.title}</h1>
-          <p>{t("Settle in. We’ll remember the details.", "Pohodlně se usaďte. Detaily si zapamatujeme.")}</p>
+          <p>{translateMessage("Settle in. We’ll remember the details.", "Pohodlně se usaďte. Detaily si zapamatujeme.")}</p>
         </div>
         <Button
-          disabled={occupied || (!meeting.recordings.length && !meeting.transcript?.text)}
+          disabled={isOccupied || (!meeting.recordings.length && !meeting.transcript?.text)}
           onClick={async () => {
             if (await processing.process()) router.push(`/${meeting.workspaceId}/meetings/${meeting.id}`);
           }}
         >
           {processing.busy ? <LoaderCircle size={17} className="spin" /> : <Check size={17} />}
-          {t("Finish meeting", "Dokončit schůzku")}
+          {translateMessage("Finish meeting", "Dokončit schůzku")}
         </Button>
       </div>
       {processing.busy && (
@@ -148,32 +149,35 @@ export function MeetingStudio({ meeting }: { meeting: Meeting }) {
       )}
       <div className="studio-grid">
         <div>
-          <RecorderPanel recorder={recorder} occupied={occupied} hasRecordings={meeting.recordings.length > 0} />
+          <RecorderPanel recorder={recorder} occupied={isOccupied} hasRecordings={meeting.recordings.length > 0} />
           <div
-            className={`upload-dropzone ${dragging ? "dragging" : ""}`}
+            className={`upload-dropzone ${isDragging ? "dragging" : ""}`}
             onDragOver={(e) => {
               e.preventDefault();
-              setDragging(true);
+              setIsDragging(true);
             }}
-            onDragLeave={() => setDragging(false)}
+            onDragLeave={() => setIsDragging(false)}
             onDrop={(e) => {
               e.preventDefault();
-              setDragging(false);
+              setIsDragging(false);
               void upload(e.dataTransfer.files);
             }}
           >
             <Upload size={25} />
             <div>
-              <strong>{t("Already have a recording?", "Už máte nahrávku?")}</strong>
+              <strong>{translateMessage("Already have a recording?", "Už máte nahrávku?")}</strong>
               <p>
-                {t("Drop audio files here, or", "Přetáhněte zvukové soubory sem nebo")}{" "}
-                <button disabled={occupied} onClick={() => input.current?.click()}>
-                  {t("browse files", "vyberte soubory")}
+                {translateMessage("Drop audio files here, or", "Přetáhněte zvukové soubory sem nebo")}{" "}
+                <button disabled={isOccupied} onClick={() => input.current?.click()}>
+                  {translateMessage("browse files", "vyberte soubory")}
                 </button>
               </p>
-              <span>MP3, M4A, WAV, MP4, WebM · {t("up to 25 MB each", "až 25 MB na soubor")}</span>
+              <span>MP3, M4A, WAV, MP4, WebM · {translateMessage(
+                `up to ${AUDIO_UPLOAD_LIMITS.maxSizeMegabytes} MB and ${AUDIO_UPLOAD_LIMITS.maxDurationHours} h each`,
+                `až ${AUDIO_UPLOAD_LIMITS.maxSizeMegabytes} MB a ${AUDIO_UPLOAD_LIMITS.maxDurationHours} h na soubor`,
+              )}</span>
             </div>
-            {uploading && <LoaderCircle className="spin" size={20} />}
+            {isUploading && <LoaderCircle className="spin" size={20} />}
             <input
               ref={input}
               type="file"
@@ -190,18 +194,18 @@ export function MeetingStudio({ meeting }: { meeting: Meeting }) {
               {uploadError}
             </div>
           )}
-          <SectionHeading title={t("Recordings", "Nahrávky")} count={meeting.recordings.length} />
+          <SectionHeading title={translateMessage("Recordings", "Nahrávky")} count={meeting.recordings.length} />
           {meeting.recordings.length ? (
             <div className="recordings-list">
               {meeting.recordings.map((item) => (
-                <RecordingItem key={item.id} recording={item} onDelete={occupied ? undefined : () => setDeleting(item.id)} />
+                <RecordingItem key={item.id} recording={item} onDelete={isOccupied ? undefined : () => setDeleting(item.id)} />
               ))}
             </div>
           ) : (
             <div className="recordings-empty">
               <AudioLines size={21} />
               <span>
-                {t(
+                {translateMessage(
                   "Your recordings will appear here. Add as many as you need.",
                   "Vaše nahrávky se zobrazí zde. Přidejte jich, kolik potřebujete.",
                 )}
@@ -209,12 +213,12 @@ export function MeetingStudio({ meeting }: { meeting: Meeting }) {
             </div>
           )}
         </div>
-        <StudioContext meeting={meeting} liveText={recorder.liveText} occupied={occupied} />
+        <StudioContext meeting={meeting} liveText={recorder.liveText} occupied={isOccupied} />
       </div>
       {deleting && (
         <Modal
-          title={t("Remove this recording?", "Odebrat tuto nahrávku?")}
-          subtitle={t(
+          title={translateMessage("Remove this recording?", "Odebrat tuto nahrávku?")}
+          subtitle={translateMessage(
             "The audio file will be deleted from this device. Existing transcripts will stay.",
             "Zvukový soubor bude odstraněn z tohoto zařízení. Existující přepisy zůstanou.",
           )}
@@ -222,7 +226,7 @@ export function MeetingStudio({ meeting }: { meeting: Meeting }) {
         >
           <div className="modal-actions">
             <Button variant="secondary" onClick={() => setDeleting(null)}>
-              {t("Cancel", "Zrušit")}
+              {translateMessage("Cancel", "Zrušit")}
             </Button>
             <Button
               className="button-danger"
@@ -237,11 +241,11 @@ export function MeetingStudio({ meeting }: { meeting: Meeting }) {
                   }));
                   setDeleting(null);
                 } catch {
-                  notify(t("Recording could not be removed. Please try again.", "Nahrávku nelze odebrat. Zkuste to znovu."));
+                  notify(translateMessage("Recording could not be removed. Please try again.", "Nahrávku nelze odebrat. Zkuste to znovu."));
                 }
               }}
             >
-              {t("Remove", "Odebrat")}
+              {translateMessage("Remove", "Odebrat")}
             </Button>
           </div>
         </Modal>
