@@ -8,8 +8,9 @@
     "start": "next start",
     "lint": "eslint .",
     "typecheck": "tsc --noEmit",
-    "check": "npm run lint && npm run typecheck && npm run test && npm run build",
+    "check": "npm run lint && npm run typecheck && npm run test && npm run test:e2e",
     "test": "tsx --test tests/*.test.ts",
+    "test:e2e": "tsx node_modules/ts-node/dist/bin.js --transpile-only --project tests/tsconfig.runner.json tests/run-e2e.ts",
     "coder:generate-boilerplates": "npx ptbk coder generate-boilerplates --count 5*1 --template ./prompts/templates/common.md",
     "coder:add": "npx ptbk coder add --template ./prompts/templates/common.md",
     "coder:run": "npx ptbk coder run --no-questions --harness openai-codex --model gpt-6.1-sol --thinking-level high --agent agents/developer.book --context AGENTS.md --test npm run check --test-before yes-and-fail",
@@ -23,12 +24,14 @@
     "react-markdown": "^10.1.0"
   },
   "devDependencies": {
+    "@playwright/test": "^1.63.0",
     "@types/node": "latest",
     "@types/react": "latest",
     "@types/react-dom": "latest",
     "eslint": "latest",
     "eslint-config-next": "^16.3.6",
     "ptbk": "^0.114.0-41",
+    "ts-node": "^10.9.2",
     "tsx": "^4.23.15",
     "typescript": "latest"
   }

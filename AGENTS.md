@@ -13,6 +13,8 @@ This repository is a small Promptbook-branded Next.js starter. Keep it understan
 - Keep line endings LF.
 - Keep changes small and the Git history linear where practical.
 - Start microphone recording only after an explicit user action. Opening or reloading a studio URL alone must not request access.
+- Cover user-facing changes in `tests/e2e/`, reusing its shared fixtures and browser helpers. Keep AI requests mocked and browser storage isolated; tests must not require credentials or a real microphone.
+- Preserve the browser regressions for recording consent, backup validation, and offline navigation. End-to-end tests use production mode because the service worker is disabled in development.
 
 ## Before finishing
 
@@ -22,6 +24,8 @@ Run:
 npm run check
 npm run build
 ```
+
+Install Chromium with `npx playwright install chromium` before the first browser test run (`--with-deps` on Linux CI if needed). `npm run check` includes unit tests and `test:e2e`, which builds and starts a temporary production server on port 3100. Keep that port free. Use `npm run test:e2e -- --grep "story name"` for a focused run; failure traces/screenshots and HTML reports are ignored by Git.
 
 If you introduce a direct import from another Promptbook package, declare that package explicitly in `dependencies` instead of relying on a transitive dependency.
 

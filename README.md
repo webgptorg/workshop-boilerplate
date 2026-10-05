@@ -42,12 +42,35 @@ For production and installation:
 
 ```bash
 npm run check
-npm test
-npm run build
 npm start
 ```
 
 Use HTTPS outside localhost for microphone access and PWA installation. On the first one-click recording, allow the browser's microphone permission request. If access is denied, the new meeting remains open in the studio so you can retry. The service worker caches the app shell, visited pages, and static assets; AI processing requires an internet connection. Install through the browser menu (on iOS, Share → Add to Home Screen). The service worker is disabled in development to avoid stale assets.
+
+## Testing
+
+Install the Playwright Chromium browser once after installing dependencies:
+
+```bash
+npx playwright install chromium
+# Linux CI may also need system dependencies:
+# npx playwright install --with-deps chromium
+npm run test:e2e
+```
+
+`npm run test:e2e` uses a `tsx`/`ts-node` TypeScript launcher and Playwright Test. It builds the app, starts a fresh production server at http://127.0.0.1:3100, and stops it after the tests. Keep that port free. Production mode is required to test the service worker. Each test gets isolated browser storage, a synthetic microphone stream recorded by the browser's native `MediaRecorder`, and mocked AI responses, so no microphone hardware or API key is needed. The launcher only transpiles; `npm run typecheck` checks all test source with strict TypeScript.
+
+The browser suite covers onboarding, workspace isolation and language inheritance, meeting and todo editing/deletion, nested todos, search/filtering, recording consent and pause/resume, audio upload/download, transcript editing/export, AI processing and retries, preferences, validated backup restore, and offline navigation. It recreates the backup, recording-intent, and service-worker regressions from the existing unit tests through browser behavior. `npm test` remains the fast unit suite; `npm run check` runs lint, strict type checking, unit tests, and the production browser suite, including the build.
+
+Pass Playwright arguments through the launcher to select or debug tests:
+
+```bash
+npm run test:e2e -- --grep "studio" --headed
+npm run test:e2e -- --list
+npx playwright show-report
+```
+
+HTML reports are saved to `playwright-report/`; failure screenshots and traces are saved to `test-results/`. Both directories are ignored by Git. Browser tests and their shared fixtures live in `tests/e2e/`.
 
 ## Source layout
 
