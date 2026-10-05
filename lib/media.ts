@@ -1,9 +1,14 @@
+import { getSupabase } from "./supabase";
+
 function openDatabase(): Promise<IDBDatabase> {
   return new Promise((resolve, reject) => {
-    const request = indexedDB.open("minute-media", 1);
-    request.onupgradeneeded = () => request.result.createObjectStore("recordings");
-    request.onsuccess = () => resolve(request.result);
-    request.onerror = () => reject(new Error("Could not open recording storage."));
+    void getSupabase().auth.getSession().then(({ data }) => {
+      if (!data.session) throw new Error("Sign in to access recordings.");
+      const request = indexedDB.open(`minute-media-${data.session.user.id}`, 1);
+      request.onupgradeneeded = () => request.result.createObjectStore("recordings");
+      request.onsuccess = () => resolve(request.result);
+      request.onerror = () => reject(new Error("Could not open recording storage."));
+    }).catch(reject);
   });
 }
 
@@ -27,7 +32,7 @@ export async function getRecording(id: string): Promise<Blob | undefined> {
   try {
     return await new Promise((resolve, reject) => {
       const request = database.transaction("recordings").objectStore("recordings").get(id);
-      request.onsuccess = () => resolve(request.result);
+        request.onsuccess = () => resolve(request.result);
       request.onerror = () => reject(new Error("Could not load the recording."));
     });
   } finally {

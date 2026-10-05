@@ -14,6 +14,10 @@ This repository is a small Promptbook-branded Next.js starter. Keep it understan
 - Keep changes small and the Git history linear where practical.
 - Start microphone recording only after an explicit user action. Opening or reloading a studio URL alone must not request access.
 - Cover user-facing changes in `tests/e2e/`, reusing its shared fixtures and browser helpers. Keep AI requests mocked and browser storage isolated; tests must not require credentials or a real microphone.
+- Supabase Auth owns credentials. Never expose database URLs or secret/service-role keys to the browser. Use the current user's token and preserve RLS on every new application table.
+- Add immutable SQL files in `migrations/` using `YYYY-MM-XXXX-description.sql`; the shared startup/CLI runner owns the transaction. Do not edit applied files or use Supabase CLI migrations for this app.
+- Keep account IDs and emails bound to the authenticated identity when importing backups. Test-user seeding is development-only; hosted production must reject the known default password.
+- Database browser fixtures use real application SQL in isolated PGlite databases. Keep tests independent of configured Supabase credentials and cover RLS changes in `tests/database.test.ts`.
 - Preserve the browser regressions for recording consent, backup validation, and offline navigation. End-to-end tests use production mode because the service worker is disabled in development.
 
 ## Before finishing

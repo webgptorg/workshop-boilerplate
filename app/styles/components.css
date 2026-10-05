@@ -90,3 +90,11 @@
 .not-found > span { font-size: 70px; color: var(--accent); font-weight: 600; letter-spacing: -4px; }
 .not-found h1 { margin: 10px 0 16px; }
 .not-found p { color: var(--muted); margin-bottom: 25px; }
+
+.auth-page { min-height: 100dvh; display: grid; place-items: center; padding: 24px; }
+.auth-card { width: min(100%, 440px); }
+.auth-card h1 { margin-top: 28px; }
+.auth-card .profile-form { margin-top: 24px; grid-template-columns: 1fr; }
+.auth-card .profile-form > .button { justify-self: stretch; }
+.auth-card [role="alert"] { color: var(--danger, #c93349); }
+.sync-status { position: fixed; bottom: 8px; right: 16px; z-index: 20; max-width: min(440px, 80vw); padding: 4px 10px; border-radius: 8px; background: var(--surface); color: var(--muted); font-size: 12px; }

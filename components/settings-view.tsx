@@ -8,7 +8,8 @@ import { Button } from "./ui/button";
 import { Modal } from "./ui/modal";
 import { PageHeading } from "./shared";
 import { WorkspaceDialog } from "./forms/workspace-dialog";
-import { mutate, isAppState } from "@/lib/store";
+import { mutate, isAppState, flushStore, reloadStoreFromDatabase } from "@/lib/store";
+import { getSupabase } from "@/lib/supabase";
 import { dayKey, downloadText } from "@/lib/utils";
 import type { AppState, Language, Theme, Workspace } from "@/lib/types";
 
@@ -16,6 +17,7 @@ export function SettingsView({ workspace }: { workspace: Workspace }) {
   const { state, t, notify } = useMinute();
   const router = useRouter();
   const [editWorkspace, setEditWorkspace] = useState(false);
+  const [isReloadingData, setIsReloadingData] = useState(false);
   const [importData, setImportData] = useState<AppState | null>(null);
   const input = useRef<HTMLInputElement>(null);
   async function readImport(file: File) {
@@ -67,12 +69,12 @@ export function SettingsView({ workspace }: { workspace: Workspace }) {
           >
             <label className="field-label">
               {t("Your name", "Vaše jméno")}
-              <input name="name" defaultValue={state.user.name} required maxLength={80} />
+              <input key={state.user.name} name="name" defaultValue={state.user.name} required maxLength={80} />
             </label>
             <label className="field-label">
               {t("Email", "E-mail")}
-              <input value={state.user.email} readOnly />
-              <span className="field-hint">{t("Demo account · no sign-in needed", "Ukázkový účet · bez přihlášení")}</span>
+              <input aria-label={t("Email", "E-mail")} value={state.user.email} readOnly />
+              <span className="field-hint">{t("Signed in with email and password", "Přihlášeno e-mailem a heslem")}</span>
             </label>
             <Button variant="secondary" type="submit">
               {t("Save profile", "Uložit profil")}
@@ -168,8 +170,8 @@ export function SettingsView({ workspace }: { workspace: Workspace }) {
               <h2>{t("Your data, in your hands", "Vaše data ve vašich rukou")}</h2>
               <p>
                 {t(
-                  "Workspaces are saved in this browser. Recordings stay on this device.",
-                  "Prostory jsou uložené v tomto prohlížeči. Nahrávky zůstávají na tomto zařízení.",
+                  "Workspaces sync to your Supabase account. Recordings stay on this device.",
+                  "Prostory se synchronizují s vaším účtem Supabase. Nahrávky zůstávají na tomto zařízení.",
                 )}
               </p>
             </div>
@@ -222,10 +224,33 @@ export function SettingsView({ workspace }: { workspace: Workspace }) {
             />
           </div>
         </section>
+        <Button variant="secondary" onClick={() => setIsReloadingData(true)}>
+          {t("Reload data from Supabase", "Načíst data ze Supabase")}
+        </Button>
+        <Button variant="secondary" onClick={async () => {
+          try {
+            await flushStore();
+            const { error } = await getSupabase().auth.signOut();
+            if (error) throw error;
+          } catch {
+            notify(t("Could not log out. Reconnect and save your changes before trying again.", "Odhlášení se nezdařilo. Připojte se a uložte změny před dalším pokusem."));
+          }
+        }}>{t("Log out", "Odhlásit se")}</Button>
         <p className="settings-version">
           minute. <span>v1.0 · {t("A little more present.", "O něco více přítomnosti.")}</span>
         </p>
       </div>
+      {isReloadingData && <Modal
+        title={t("Replace local changes?", "Nahradit místní změny?")}
+        subtitle={t("This loads the latest database version and discards unsynced changes on this device. Export a backup first to keep them.", "Načte nejnovější verzi databáze a zahodí nesynchronizované změny na tomto zařízení. Pro jejich zachování nejprve exportujte zálohu.")}
+        onClose={() => setIsReloadingData(false)}
+      ><div className="modal-actions">
+        <Button variant="secondary" onClick={() => setIsReloadingData(false)}>{t("Cancel", "Zrušit")}</Button>
+        <Button onClick={async () => {
+          try { await reloadStoreFromDatabase(); setIsReloadingData(false); }
+          catch { notify(t("Could not reload data. Check your connection and retry.", "Data se nepodařilo načíst. Zkontrolujte připojení a zkuste to znovu.")); }
+        }}>{t("Replace local changes", "Nahradit místní změny")}</Button>
+      </div></Modal>}
       {editWorkspace && <WorkspaceDialog workspace={workspace} onClose={() => setEditWorkspace(false)} />}
       {importData && (
         <Modal

@@ -1,8 +1,9 @@
 import type { AppState } from "./types";
 
 const object = (value: unknown): value is Record<string, unknown> => !!value && typeof value === "object" && !Array.isArray(value);
-const strings = (value: unknown): value is string[] => Array.isArray(value) && value.every((item) => typeof item === "string");
-const text = (value: unknown) => typeof value === "string" && value.length <= 200_000;
+const strings = (value: unknown): value is string[] =>
+  Array.isArray(value) && value.length <= 10_000 && value.every((item) => typeof item === "string" && item.length <= 200_000);
+const text = (value: unknown): value is string => typeof value === "string" && value.length <= 200_000;
 const id = (value: unknown) => typeof value === "string" && /^[\w-]{1,100}$/.test(value);
 const date = (value: unknown) => typeof value === "string" && Number.isFinite(Date.parse(value));
 const number = (value: unknown) => typeof value === "number" && Number.isFinite(value) && value >= 0;
@@ -85,7 +86,9 @@ export function isAppState(value: unknown): value is AppState {
   if (
     !id(user.id) ||
     !text(user.name) ||
+    user.name.length > 80 ||
     !text(user.email) ||
+    user.email.length > 254 ||
     !oneOf(user.language, ["en", "cs"]) ||
     !oneOf(user.theme, ["light", "dark", "system"])
   )

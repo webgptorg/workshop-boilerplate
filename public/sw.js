@@ -1,4 +1,4 @@
-const CACHE = "minute-v1";
+const CACHE = "minute-v2";
 const SHELL = ["/", "/icon.svg", "/manifest.webmanifest", "/icons/icon-192.png", "/icons/icon-512.png"];
 
 self.addEventListener("install", event => {

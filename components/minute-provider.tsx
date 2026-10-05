@@ -2,7 +2,8 @@
 
 import { createContext, useCallback, useContext, useEffect, useRef, useState } from "react";
 import { CheckCircle2, X } from "lucide-react";
-import { initializeStore, takeStorageError, useAppState } from "@/lib/store";
+import { initializeStore, takeStorageError, useAppState, useSyncStatus } from "@/lib/store";
+import type { Account } from "@/lib/account-state";
 import type { AppState } from "@/lib/types";
 
 interface MinuteContextValue {
@@ -13,8 +14,10 @@ interface MinuteContextValue {
 
 const MinuteContext = createContext<MinuteContextValue | null>(null);
 
-export function MinuteProvider({ children }: { children: React.ReactNode }) {
+export function MinuteProvider({ children, account }: { children: React.ReactNode; account: Account }) {
   const state = useAppState();
+  const SYNC_STATUS = useSyncStatus();
+  const [loadError, setLoadError] = useState("");
   const [toast, setToast] = useState("");
   const timer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const notify = useCallback((message: string) => {
@@ -24,11 +27,11 @@ export function MinuteProvider({ children }: { children: React.ReactNode }) {
   }, []);
 
   useEffect(() => {
-    initializeStore();
+    void initializeStore(account).catch((reason: Error) => setLoadError(reason.message));
     return () => {
       if (timer.current) clearTimeout(timer.current);
     };
-  }, []);
+  }, [account]);
 
   useEffect(() => {
     if (!state) return;
@@ -54,6 +57,11 @@ export function MinuteProvider({ children }: { children: React.ReactNode }) {
 
   const t = useCallback((english: string, czech: string) => (state?.user.language === "cs" ? czech : english), [state?.user.language]);
 
+  if (loadError) return <main className="auth-page"><section className="settings-card auth-card">
+    <h1>Could not load your workspace</h1><p role="alert">{loadError}</p>
+    <button className="button button-primary" onClick={() => window.location.reload()}>Retry</button>
+  </section></main>;
+
   if (!state)
     return (
       <div className="app-loading">
@@ -72,6 +80,7 @@ export function MinuteProvider({ children }: { children: React.ReactNode }) {
   return (
     <MinuteContext.Provider value={{ state, t, notify }}>
       {children}
+      <div className="sync-status" aria-live="polite">{SYNC_STATUS}</div>
       {toast && (
         <div className="toast" role="status">
           <CheckCircle2 size={19} />

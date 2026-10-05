@@ -1,5 +1,6 @@
 import { readFile } from "node:fs/promises";
 import { test as base, expect, type Download, type Page } from "@playwright/test";
+import { mockSupabase } from "./supabase-fixture";
 import { DEFAULT_WORKSPACE } from "../../lib/seed";
 import type { AppState } from "../../lib/types";
 
@@ -61,7 +62,11 @@ export class MinutePage {
   }
 }
 
-export const test = base.extend<{ app: MinutePage }>({
+export const test = base.extend<{ app: MinutePage; authentication: void }>({
+  authentication: [async ({ context }, provideFixture) => {
+    const DATABASE = await mockSupabase(context);
+    try { await provideFixture(); } finally { await DATABASE.close(); }
+  }, { auto: true }],
   app: async ({ page, context }, provideFixture) => {
     // Keep browser interaction real while isolating paid AI calls and optional live captions.
     await context.route("**/api/**", (route) => route.fulfill({
@@ -93,9 +98,18 @@ export const test = base.extend<{ app: MinutePage }>({
       };
     }, MICROPHONE_REQUESTS_KEY);
     const APP = new MinutePage(page);
+    await page.goto("/");
+    await login(page);
     await APP.open();
     await provideFixture(APP);
   },
 });
 
 export { expect, WORKSPACE_URL };
+
+export async function login(page: Page, email = "test@ptbk.io", password = "password123") {
+  await page.getByLabel("Email", { exact: true }).fill(email);
+  await page.getByLabel("Password", { exact: true }).fill(password);
+  await page.getByRole("button", { name: "Log in", exact: true }).click();
+  await expect(page.locator(".sidebar")).toBeVisible();
+}

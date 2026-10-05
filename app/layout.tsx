@@ -1,6 +1,6 @@
 import type { Metadata, Viewport } from "next";
 import { Inter, Outfit } from "next/font/google";
-import { MinuteProvider } from "@/components/minute-provider";
+import { AuthGate } from "@/components/auth-gate";
 import "./globals.css";
 
 const inter = Inter({
@@ -39,7 +39,7 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body className={`${inter.variable} ${outfit.variable}`}>
-        <MinuteProvider>{children}</MinuteProvider>
+        <AuthGate>{children}</AuthGate>
       </body>
     </html>
   );
