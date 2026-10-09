@@ -1,0 +1,1 @@
+App "Notes" have very simple text which can be edited by multiple users. 
