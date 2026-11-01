@@ -1,0 +1,42 @@
+{
+    "terminals": [
+        {
+            "name": "🔼👑 Release major version",
+            "command": "npm version major",
+            "onlySingle": true,
+            "focus": true
+        },
+        {
+            "name": "🔼🚀 Release minor version",
+            "command": "npm version minor",
+            "onlySingle": true,
+            "focus": true
+        },
+        {
+            "name": "🔼🩹 Release patch version",
+            "command": "npm version patch",
+            "onlySingle": true,
+            "focus": true
+        },
+        {
+            "name": "🔼👑🧪 Release pre-major version",
+            "commands": [
+                "npm version premajor",
+                "npm version prerelease"
+            ],
+            "onlySingle": true,
+            "execute": false,
+            "focus": true
+        },
+        {
+            "name": "🔼🚀🧪 Release pre-minor version",
+            "commands": [
+                "npm version preminor",
+                "npm version prerelease"
+            ],
+            "onlySingle": true,
+            "execute": false,
+            "focus": true
+        }
+    ]
+}
