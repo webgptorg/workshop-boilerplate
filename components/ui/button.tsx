@@ -1,5 +1,5 @@
-import type { ButtonHTMLAttributes } from "react";
 import { cn } from "@/lib/cn";
+import type { ButtonHTMLAttributes } from "react";
 
 export type ButtonVariant = "primary" | "secondary" | "ghost";
 
