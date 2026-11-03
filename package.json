@@ -37,5 +37,6 @@
     "repository": {
         "type": "git",
         "url": "git+https://github.com/webgptorg/workshop-boilerplate.git"
-    }
+    },
+    "description": "Promptbook-branded Next.js starter"
 }
